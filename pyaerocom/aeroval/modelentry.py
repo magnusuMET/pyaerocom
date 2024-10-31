@@ -193,7 +193,7 @@ class ModelEntry(BaseModel):
     )
 
     model_id: str
-    model_ts_type_read: str | dict = ""  # TODO: see if can make None
+    model_ts_type_read: str | dict | None = ""  # TODO: see if can make None
     model_name: str | None = None
     model_use_vars: dict = {}
     model_add_vars: dict[str, tuple[str, ...]] = {}
