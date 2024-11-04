@@ -1,5 +1,5 @@
 from warnings import warn
-import warnings
+
 
 _cmap_lighttheme = "Blues"
 
@@ -74,7 +74,7 @@ class ColorTheme:
         cmap_map_div=None,
         cmap_map_div_shifted=True,
     ):
-        warnings.warn(
+        warn(
             "This class is no longer supported. It may be removed in future versions.",
             DeprecationWarning,
         )
@@ -156,7 +156,7 @@ COLOR_THEME = ColorTheme(DEFAULT_THEME)
 
 
 def get_color_theme(theme_name="dark"):
-    warnings.warn(
+    warn(
         "This function is no longer supported. It may be removed in future versions.",
         DeprecationWarning,
     )
