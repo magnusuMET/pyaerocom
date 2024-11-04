@@ -75,7 +75,7 @@ class ColorTheme:
         cmap_map_div_shifted=True,
     ):
         warn(
-            "This class is no longer supported. It may be removed in future versions.",
+            "matplotlib based plotting is no longer directly supported. This class may be removed in future versions.",
             DeprecationWarning,
         )
 
@@ -157,7 +157,7 @@ COLOR_THEME = ColorTheme(DEFAULT_THEME)
 
 def get_color_theme(theme_name="dark"):
     warn(
-        "This function is no longer supported. It may be removed in future versions.",
+        "matplotlib based plotting is no longer directly supported. This function may be removed in future versions.",
         DeprecationWarning,
     )
 

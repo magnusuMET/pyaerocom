@@ -8,7 +8,7 @@ from pyaerocom.mathutils import exponent
 def projection_from_str(projection_str="PlateCarree"):
     """Return instance of cartopy projection class based on string ID"""
     warnings.warn(
-        "This function is no longer supported. It may be removed in future versions.",
+        "matplotlib based plotting is no longer directly supported. This function may be removed in future versions.",
         DeprecationWarning,
     )
 
@@ -21,7 +21,7 @@ def projection_from_str(projection_str="PlateCarree"):
 def custom_mpl(mpl_rcparams=None, default_large=True, **kwargs):
     """Custom matplotlib settings"""
     warnings.warn(
-        "This function is no longer supported. It may be removed in future versions.",
+        "matplotlib based plotting is no longer directly supported. This function may be removed in future versions.",
         DeprecationWarning,
     )
 
@@ -83,7 +83,7 @@ def calc_figsize(lon_range, lat_range, figh=8):
         2-element tuple containing figure width and height
     """
     warnings.warn(
-        "This function is no longer supported. It may be removed in future versions.",
+        "matplotlib based plotting is no longer directly supported. This function may be removed in future versions.",
         DeprecationWarning,
     )
 
@@ -131,7 +131,7 @@ def calc_pseudolog_cmaplevels(vmin, vmax, add_zero=False):
 
     """
     warnings.warn(
-        "This function is no longer supported. It may be removed in future versions.",
+        "matplotlib based plotting is no longer directly supported. This function may be removed in future versions.",
         DeprecationWarning,
     )
 

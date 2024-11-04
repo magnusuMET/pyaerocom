@@ -20,7 +20,7 @@ def plot_scatter(x_vals, y_vals, **kwargs):
     see there for details)
     """
     warnings.warn(
-        "This function is no longer supported. It may be removed in future versions.",
+        "matplotlib based plotting is no longer directly supported. This function may be removed in future versions.",
         DeprecationWarning,
     )
 
@@ -111,7 +111,7 @@ def plot_scatter_aerocom(
         plot axes
     """
     warnings.warn(
-        "This function is no longer supported. It may be removed in future versions.",
+        "matplotlib based plotting is no longer directly supported. This function may be removed in future versions.",
         DeprecationWarning,
     )
 

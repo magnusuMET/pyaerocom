@@ -235,7 +235,7 @@ def df_to_heatmap(
 
     """
     warnings.warn(
-        "This function is no longer supported. It may be removed in future versions.",
+        "matplotlib based plotting is no longer directly supported. This function may be removed in future versions.",
         DeprecationWarning,
     )
 
