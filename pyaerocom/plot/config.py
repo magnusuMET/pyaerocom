@@ -1,11 +1,22 @@
 from warnings import warn
 
+
 _cmap_lighttheme = "Blues"
 
 DEFAULT_THEME = "light"
 _COLOR_THEMES = dict(
-    light=dict(name="light", cmap_map=_cmap_lighttheme, cmap_map_div="bwr_r", color_coastline="k"),
-    dark=dict(name="dark", cmap_map="viridis", cmap_map_div="PuOr_r", color_coastline="#e6e6e6"),
+    light=dict(
+        name="light",
+        cmap_map=_cmap_lighttheme,
+        cmap_map_div="bwr_r",
+        color_coastline="k",
+    ),
+    dark=dict(
+        name="dark",
+        cmap_map="viridis",
+        cmap_map_div="PuOr_r",
+        color_coastline="#e6e6e6",
+    ),
 )
 
 MAP_AXES_ASPECT = 1.5
@@ -63,6 +74,11 @@ class ColorTheme:
         cmap_map_div=None,
         cmap_map_div_shifted=True,
     ):
+        warn(
+            "matplotlib based plotting is no longer directly supported. This class may be removed in future versions.",
+            DeprecationWarning,
+        )
+
         if name not in _COLOR_THEMES:
             warn("Invalid name for color theme, using default theme")
             name = DEFAULT_THEME
@@ -140,6 +156,11 @@ COLOR_THEME = ColorTheme(DEFAULT_THEME)
 
 
 def get_color_theme(theme_name="dark"):
+    warn(
+        "matplotlib based plotting is no longer directly supported. This function may be removed in future versions.",
+        DeprecationWarning,
+    )
+
     # Settings for colormap (use perceptually uniform colormaps)
     if theme_name not in _COLOR_THEMES:
         raise ValueError(f"Invalid input for theme_name, choose from {_COLOR_THEMES}")
