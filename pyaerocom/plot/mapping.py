@@ -1,3 +1,4 @@
+import warnings
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import numpy as np
@@ -41,6 +42,11 @@ def get_cmap_maps_aerocom(color_theme=None, vmin=None, vmax=None):
     -------
     colormap
     """
+    warnings.warn(
+        "This function is no longer supported. It may be removed in future versions.",
+        DeprecationWarning,
+    )
+
     if color_theme is None:
         color_theme = COLOR_THEME
     if vmin is not None and vmax is not None and vmin < 0 and vmax > 0:
