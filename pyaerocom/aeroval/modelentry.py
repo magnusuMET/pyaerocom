@@ -200,6 +200,7 @@ class ModelEntry(BaseModel):
     model_read_aux: dict = {}
     model_rename_vars: dict = {}
     flex_ts_type: bool = False
+    model_data_dir: str | None = None
 
     @property
     def aux_funs_required(self):
