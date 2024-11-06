@@ -148,7 +148,7 @@ class PyaroToUngriddedData:
         var_size = {var: len(pyaro_data[var]) for var in pyaro_data}
         vars = list(pyaro_data.keys())
         total_size = sum(list(var_size.values()))
-        units = {var: {"units": pyaro_data[var]._units} for var in pyaro_data}
+        units = {var: {"units": pyaro_data[var].units} for var in pyaro_data}
 
         # Object necessary for ungriddeddata
         var_idx = {var: i for i, var in enumerate(vars)}
