@@ -136,7 +136,7 @@ class ReadGAW(ReadUngriddedBase):
             if np.shape(data[i])[0] != 10:
                 del data[i]
 
-        data = np.array(data)
+        data = np.array(data, dtype=object)
 
         # names of the columns in the file that I want to use
         file_vars = file_vars[5:9]
