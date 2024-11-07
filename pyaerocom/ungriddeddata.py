@@ -7,6 +7,7 @@ from datetime import datetime
 
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 
 from pyaerocom import const
@@ -78,7 +79,7 @@ class UngriddedData:
         dictionary containing meta information about the data. Keys are
         floating point numbers corresponding to each station, values are
         corresponding dictionaries containing station information.
-    meta_idx : dict
+    meta_idx : dict[float, dict[str, ??]]
         dictionary containing index mapping for each station and variable. Keys
         correspond to metadata key (float -> station, see :attr:`metadata`) and
         values are dictionaries containing keys specifying variable name and
@@ -87,7 +88,7 @@ class UngriddedData:
         information is redunant and is there to accelarate station data
         extraction since the data index matches for a given metadata block
         do not need to be searched in the underlying numpy array.
-    var_idx : dict
+    var_idx : dict[str, float]
         mapping of variable name (keys, e.g. od550aer) to numerical variable
         index of this variable in data numpy array (in column specified by
         :attr:`_VARINDEX`)
@@ -158,6 +159,17 @@ class UngriddedData:
 
         self.filter_hist = {}
         self._is_vertical_profile = False
+
+
+    @staticmethod
+    def _from_array_and_metadata(array: np.NDTArray[float], station_metadata: dict[float, dict], var_metadata: dict[float, str]) -> UngriddedData:
+        data_obj = UngriddedData()
+        data_obj._data = array
+        data_obj.meta_idx = station_metadata
+        data_obj.var_idx = var_metadata
+        data_obj.metadata = station_metadata
+
+        return data_obj
 
     def _get_data_revision_helper(self, data_id):
         """

@@ -3,10 +3,11 @@ from __future__ import annotations
 import logging
 from copy import deepcopy
 from typing import NewType
+import functools
 
 from tqdm import tqdm
-
 import numpy as np
+import numpy.typing as npt
 from pyaro import list_timeseries_engines, open_timeseries
 from pyaro.timeseries import Data, Reader, Station
 from pyaro.timeseries.Wrappers import VariableNameChangingReader
@@ -86,6 +87,16 @@ class ReadPyaro(ReadUngriddedBase):
                 f"Could not find {self.config.data_id} in list of available Pyaro readers: {avail_readers}"
             )
 
+def _calculate_ts_type(start: npt.NDArray[np.datetime64], end: npt.NDArray[np.datetime64]) -> npt.NDArray[TsType]:
+    seconds = (end - start).astype("timedelta64[s]").astype(np.int32)
+
+    @np.vectorize
+    @functools.lru_cache(maxsize=128)
+    def memoized_ts_type(x: np.int32) -> TsType:
+        return TsType.from_total_seconds(x)
+
+    return memoized_ts_type(seconds)
+
 
 class PyaroToUngriddedData:
     _METADATAKEYINDEX = 0
@@ -154,60 +165,81 @@ class PyaroToUngriddedData:
         var_idx = {var: i for i, var in enumerate(vars)}
         metadata: Metadata = {}
         meta_idx: dict = {}  # = {s: {v: [] for v in vars} for s in metadata}
-        data_array = np.zeros([total_size, 12])
 
         # Helper objects
         station_idx = {}
 
         idx = 0
         metadata_idx = 0
+
+        COLNO = 12
+        outarray = np.nan * np.ones((sum(var_size.values()), COLNO), dtype=float, order="F")
+
+
+        station_metadata: dict[float, dict] = dict()
+        station_mapper: dict[str, float] = dict()
+        station_key = 1.0
+
+        var_metadata: dict[float, str] = dict()
+        var_key = -1.0
+
+        
+        current_offset = 0
         for var, var_data in pyaro_data.items():
-            size = var_size[var]
-            for i in tqdm(range(size), disable=None):
-                data_line = var_data[i]
-                current_station = data_line["stations"]
+            next_offset = current_offset + len(var_data)
+            idx = slice(current_offset, next_offset+1)
 
-                # Fills data array
-                ungriddeddata_line = self._pyaro_dataline_to_ungriddeddata_dataline(
-                    data_line, idx, var_idx[var]
-                )
+            curent_offset = next_offset
 
-                # Finds the ts_type of the stations. Raises error of same station has different types
-                start, stop = data_line["start_times"], data_line["end_times"]
-                ts_type = str(self._calculate_ts_type(start, stop))
+            # Assert ts_type of a station matches the above, but how?
+            stations = var_data.stations
+            unique_stations = set(np.unique(stations))
+            unknown_stations = unique_stations.difference(station_metadata.keys())
 
-                if current_station not in station_idx:
-                    station_idx[current_station] = {}
+            for s in unknown_stations:
+                identifier = station_key
+                station_key += 1.0
+                station_mapper[s] = identifier
+                station_metadata[identifier] = dict()
 
-                if ts_type not in station_idx[current_station]:
-                    station_idx[current_station][ts_type] = metadata_idx
-                    metadata[metadata_idx] = self._make_single_ungridded_metadata(
-                        stations[current_station], current_station, ts_type, units
-                    )
-                    metadata_idx += 1
+            if var not in var_metadata.keys():
+                identifier = var_key
+                var_key += -1.0
+                var_metadata[identifier] = var
+            for varid, key in var_metadata.items():
+                if key == var:
+                    break
 
-                data_array[idx, :] = ungriddeddata_line
+            # assert a station only contains one ts_type
+            ts_types = _calculate_ts_type(var_data.start_times, var_data.end_times)
+            for station in unique_stations:
+                mask = stations == station
+                if np.any(ts_types[mask] != ts_types[mask][0]):
+                    raise Exception("ts_type mismatch")
 
-                #  Fills meta_idx
-                if station_idx[current_station][ts_type] not in meta_idx:
-                    meta_idx[station_idx[current_station][ts_type]] = {v: [] for v in vars}
 
-                meta_idx[station_idx[current_station][ts_type]][var].append(idx)
+            @np.vectorize
+            @functools.lru_cache(maxsize=128)
+            def map_station_to_identifier(x: str) -> float:
+                return station_mapper[x]
 
-                idx += 1
 
-        new_meta_idx = {}
-        for station_id in meta_idx:
-            new_meta_idx[station_id] = {}
-            for var_id in meta_idx[station_id]:
-                new_meta_idx[station_id][var_id] = np.array(meta_idx[station_id][var_id])
+            outarray[idx, PyaroToUngriddedData._METADATAKEYINDEX] = map_station_to_identifier(stations)
+            midtime = var_data.start_times + (var_data.end_times - var_data.start_times)/2
+            outarray[idx, PyaroToUngriddedData._TIMEINDEX] = midtime.astype("datetime64[s]")
+            outarray[idx, PyaroToUngriddedData._LATINDEX] = var_data.latitudes
+            outarray[idx, PyaroToUngriddedData._LONINDEX] = var_data.longitudes
+            outarray[idx, PyaroToUngriddedData._ALTITUDEINDEX] = var_data.altitudes
+            outarray[idx, PyaroToUngriddedData._VARINDEX] = varid
+            outarray[idx, PyaroToUngriddedData._DATAINDEX] = var_data.values
+            # outarray[idx, PyaroToUngriddedData._DATAHEIGHTINDEX] = ?? Unused ??
+            outarray[idx, PyaroToUngriddedData._DATAERRINDEX] = var_data.standard_deviations
+            outarray[idx, PyaroToUngriddedData._DATAFLAGINDEX] = var_data.flags  # Only counts if non-NaN?
+            # outarray[idx, PyaroToUngriddedData._STOPTIMEINDEX] = var_data.end_times # Seems unused?
+            # outarray[idx, PyaroToUngriddedData._TRASHINDEX] = ?? NaN -> Not trash, used for cleaning up the dataset in ungriddedreader
+            
+        return UngriddedData._from_array_and_metadata(outarray, station_metadata, var_metadata)
 
-        self.data._data = data_array
-        self.data.meta_idx = new_meta_idx
-        self.data.metadata = metadata
-        self.data.var_idx = var_idx
-
-        return self.data
 
     def _get_metadata_from_pyaro(self, station: Station) -> list[dict[str, str]]:
         metadata = dict(
