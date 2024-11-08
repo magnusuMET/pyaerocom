@@ -34,13 +34,14 @@ class ScaleAndColmap(dict[str, str | list[float]]):
 class VarWebScaleAndColormap(dict[str, ScaleAndColmap]):
     def __init__(self, config_file: str = "", **kwargs):
         """This class contains scale and colmap informations and is implemented as dict to allow
-        json serialization. It reads it inital data from data/var_scale_colmap.ini.
+        json serialization. It reads it inital data from data/var_scale_colmap.ini. kwargs will be send to update.
 
         :param config_file: filename to additional or updated information, defaults to None
         """
         super().__init__()
         with resources.path("pyaerocom.aeroval.data", "var_scale_colmap.ini") as file:
             self.update_from_ini(file)
+        config_file = kwargs.pop("config_file", config_file)
         if config_file != "":
             logger.info(f"Reading additional web-scales from '{config_file}'")
             if not os.path.exists(config_file):
@@ -51,6 +52,9 @@ class VarWebScaleAndColormap(dict[str, ScaleAndColmap]):
         self.update(**kwargs)
 
     def update(self, **kwargs):
+        """update/add scale and colormaps by kwargs, e.g.
+        update(concso2={"scale"=[0.2,1], "colormap"="bluewhite"})
+        """
         wvsc = _VarWebScaleAndColormap(scale_colmaps=kwargs)
         super().update(**{x: y._asdict() for x, y in wvsc.scale_colmaps.items()})
 

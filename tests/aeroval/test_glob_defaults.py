@@ -21,5 +21,10 @@ def test_var_web_scale_and_colormap():
     with pytest.raises(ValidationError):
         VarWebScaleAndColormap(**{"bla": ["blub"]})
 
-    vwsc2 = VarWebScaleAndColormap(**{"new_var": {"scale": [1, 2, 4], "colmap": "my_colormap"}})
-    assert "concso2" in vwsc2
+    vwsc2 = VarWebScaleAndColormap(
+        config_file="", **{"new_var": {"scale": [1, 2, 4], "colmap": "my_colormap"}}
+    )
+    assert "new_var" in vwsc2
+
+    vwsc3 = VarWebScaleAndColormap(new_var2={"scale": [1, 2, 4], "colmap": "my_colormap"})
+    assert "new_var2" in vwsc3
