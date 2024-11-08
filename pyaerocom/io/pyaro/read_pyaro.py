@@ -175,13 +175,12 @@ class PyaroToUngriddedData:
         COLNO = 12
         outarray = np.nan * np.ones((sum(var_size.values()), COLNO), dtype=float, order="F")
 
-
         station_metadata: dict[float, dict] = dict()
         station_mapper: dict[str, float] = dict()
-        station_key = 1.0
+        station_key = 0.0
 
         var_metadata: dict[float, str] = dict()
-        var_key = -1.0
+        var_key = 0.0
 
         
         current_offset = 0
@@ -200,11 +199,17 @@ class PyaroToUngriddedData:
                 identifier = station_key
                 station_key += 1.0
                 station_mapper[s] = identifier
-                station_metadata[identifier] = dict()
+                station_metadata[identifier] = {
+                    "variables": [var],
+                    "data_id": self.config.data_id,
+                    "station_name": s,
+                    "latitude": np.nan,
+                    "longitude": np.nan,
+                }
 
             if var not in var_metadata.keys():
                 identifier = var_key
-                var_key += -1.0
+                var_key += 1.0
                 var_metadata[identifier] = var
             for varid, key in var_metadata.items():
                 if key == var:
@@ -224,21 +229,37 @@ class PyaroToUngriddedData:
                 return station_mapper[x]
 
 
-            outarray[idx, PyaroToUngriddedData._METADATAKEYINDEX] = map_station_to_identifier(stations)
+            outarray[idx, UngriddedData._METADATAKEYINDEX] = map_station_to_identifier(stations)
             midtime = var_data.start_times + (var_data.end_times - var_data.start_times)/2
-            outarray[idx, PyaroToUngriddedData._TIMEINDEX] = midtime.astype("datetime64[s]")
-            outarray[idx, PyaroToUngriddedData._LATINDEX] = var_data.latitudes
-            outarray[idx, PyaroToUngriddedData._LONINDEX] = var_data.longitudes
-            outarray[idx, PyaroToUngriddedData._ALTITUDEINDEX] = var_data.altitudes
-            outarray[idx, PyaroToUngriddedData._VARINDEX] = varid
-            outarray[idx, PyaroToUngriddedData._DATAINDEX] = var_data.values
-            # outarray[idx, PyaroToUngriddedData._DATAHEIGHTINDEX] = ?? Unused ??
-            outarray[idx, PyaroToUngriddedData._DATAERRINDEX] = var_data.standard_deviations
-            outarray[idx, PyaroToUngriddedData._DATAFLAGINDEX] = var_data.flags  # Only counts if non-NaN?
-            # outarray[idx, PyaroToUngriddedData._STOPTIMEINDEX] = var_data.end_times # Seems unused?
-            # outarray[idx, PyaroToUngriddedData._TRASHINDEX] = ?? NaN -> Not trash, used for cleaning up the dataset in ungriddedreader
+            outarray[idx, UngriddedData._TIMEINDEX] = midtime.astype("datetime64[s]")
+            outarray[idx, UngriddedData._LATINDEX] = var_data.latitudes
+            outarray[idx, UngriddedData._LONINDEX] = var_data.longitudes
+            outarray[idx, UngriddedData._ALTITUDEINDEX] = var_data.altitudes
+            outarray[idx, UngriddedData._VARINDEX] = varid
+            outarray[idx, UngriddedData._DATAINDEX] = var_data.values
+            # outarray[idx, UngriddedData._DATAHEIGHTINDEX] = ?? Unused ??
+            outarray[idx, UngriddedData._DATAERRINDEX] = var_data.standard_deviations
+            outarray[idx, UngriddedData._DATAFLAGINDEX] = var_data.flags  # Only counts if non-NaN?
+            # outarray[idx, UngriddedData._STOPTIMEINDEX] = var_data.end_times # Seems unused?
+            # outarray[idx, UngriddedData._TRASHINDEX]  # No need to set, only non-NaN values are considered trash
             
-        return UngriddedData._from_array_and_metadata(outarray, station_metadata, var_metadata)
+
+        metadata = {k: v for k, v in station_metadata.items()}
+
+        meta_idx = dict()
+        for station_key in station_metadata.keys():
+            d = dict()
+            for var_key, var_val in var_metadata.items():
+                mask = (outarray[:, UngriddedData._METADATAKEYINDEX] == station_key) & (outarray[:, UngriddedData._VARINDEX] == var_key)
+                indices = np.flatnonzero(mask)
+                if len(indices) == 0:
+                    continue
+                d[var_val] = indices
+            meta_idx[station_key] = d
+
+        var_idx = {v: k for k, v, in var_metadata.items()}
+
+        return UngriddedData._from_raw_parts(outarray, metadata, meta_idx, var_idx)
 
 
     def _get_metadata_from_pyaro(self, station: Station) -> list[dict[str, str]]:

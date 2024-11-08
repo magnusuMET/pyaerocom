@@ -75,11 +75,11 @@ class UngriddedData:
 
     Attributes
     ----------
-    metadata : dict
+    metadata : dict[float, dict[str, Any]]
         dictionary containing meta information about the data. Keys are
         floating point numbers corresponding to each station, values are
         corresponding dictionaries containing station information.
-    meta_idx : dict[float, dict[str, ??]]
+    meta_idx : dict[float, dict[str, list[int]]]
         dictionary containing index mapping for each station and variable. Keys
         correspond to metadata key (float -> station, see :attr:`metadata`) and
         values are dictionaries containing keys specifying variable name and
@@ -160,14 +160,19 @@ class UngriddedData:
         self.filter_hist = {}
         self._is_vertical_profile = False
 
-
     @staticmethod
-    def _from_array_and_metadata(array: np.NDTArray[float], station_metadata: dict[float, dict], var_metadata: dict[float, str]) -> UngriddedData:
+    def _from_raw_parts(
+        data: npt.NDTArray[float],
+        metadata: dict[float, dict[str, str]],
+        meta_idx: dict[float, dict[str, list[int]]],
+        var_idx: dict[str, float],
+    ) -> UngriddedData:
         data_obj = UngriddedData()
-        data_obj._data = array
-        data_obj.meta_idx = station_metadata
-        data_obj.var_idx = var_metadata
-        data_obj.metadata = station_metadata
+
+        data_obj._data = data
+        data_obj.meta_idx = meta_idx
+        data_obj.metadata = metadata
+        data_obj.var_idx = var_idx
 
         return data_obj
 
