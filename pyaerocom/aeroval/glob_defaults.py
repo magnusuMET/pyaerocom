@@ -4,6 +4,7 @@ import json
 import logging
 from configparser import ConfigParser
 from enum import Enum
+import os
 from typing import NamedTuple
 
 from pydantic import BaseModel
@@ -31,7 +32,7 @@ class ScaleAndColmap(dict[str, str | list[float]]):
 
 
 class VarWebScaleAndColormap(dict[str, ScaleAndColmap]):
-    def __init__(self, config_file="", **kwargs):
+    def __init__(self, config_file: str = "", **kwargs):
         """This class contains scale and colmap informations and is implemented as dict to allow
         json serialization. It reads it inital data from data/var_scale_colmap.ini.
 
@@ -42,6 +43,10 @@ class VarWebScaleAndColormap(dict[str, ScaleAndColmap]):
             self.update_from_ini(file)
         if config_file != "":
             logger.info(f"Reading additional web-scales from '{config_file}'")
+            if not os.path.exists(config_file):
+                raise FileNotFoundError(
+                    f"VarWebScaleAndColormap initialized with config_file: '{config_file}' which does not exist"
+                )
             self.update_from_ini(config_file)
         self.update(**kwargs)
 
@@ -51,6 +56,10 @@ class VarWebScaleAndColormap(dict[str, ScaleAndColmap]):
 
     def update_from_ini(self, filename):
         cfg = ConfigParser()
+        if not os.path.exists(filename):
+            raise FileNotFoundError(
+                f"VarWebScaleAndColormap update_from_ini('{filename}') which does not exist"
+            )
         cfg.read(filename)
         # remove configparser default
         cfg_dict = dict()
