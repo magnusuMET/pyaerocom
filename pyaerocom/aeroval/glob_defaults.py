@@ -41,7 +41,6 @@ class VarWebScaleAndColormap(dict[str, ScaleAndColmap]):
         super().__init__()
         with resources.path("pyaerocom.aeroval.data", "var_scale_colmap.ini") as file:
             self.update_from_ini(file)
-        config_file = kwargs.pop("config_file", config_file)
         if config_file != "":
             logger.info(f"Reading additional web-scales from '{config_file}'")
             if not os.path.exists(config_file):
