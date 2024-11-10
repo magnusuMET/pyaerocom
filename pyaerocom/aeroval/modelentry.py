@@ -199,8 +199,11 @@ class ModelEntry(BaseModel):
     model_add_vars: dict[str, tuple[str, ...]] = {}
     model_read_aux: dict = {}
     model_rename_vars: dict = {}
-    flex_ts_type: bool = False
+    flex_ts_type: bool = True
     model_data_dir: str | None = None
+    # attributes previously given as kwargs used in CAMS2_83
+    gridded_reader_id: dict[str, str] = {"model": "ReadGridded", "obs": "ReadGridded"}
+    model_kwargs: dict = {}
 
     @property
     def aux_funs_required(self):
