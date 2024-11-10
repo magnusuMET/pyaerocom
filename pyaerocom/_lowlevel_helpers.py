@@ -126,13 +126,6 @@ class StrWithDefault(Validator):
         return val
 
 
-# class DictType(Validator):
-#     def validate(self, val):
-#         if not isinstance(val, dict):
-#             raise ValueError(f"need dict, got {val}")
-#         return val
-
-
 class FlexList(Validator):
     """list that can be instantated via input str, tuple or list or None"""
 
@@ -168,17 +161,6 @@ class ListOfStrings(FlexList):
         if not all([isinstance(x, str) for x in val]):
             raise ValueError(f"not all items are str type in input list {val}")
         return val
-
-
-# class DictStrKeysListVals(Validator):
-#     def validate(self, val: dict):
-#         if not isinstance(val, dict):
-#             raise ValueError(f"need dict, got {val}")
-#         if any(not isinstance(x, str) for x in val):
-#             raise ValueError(f"all keys need to be str type in {val}")
-#         if any(not isinstance(x, list) for x in val.values()):
-#             raise ValueError(f"all values need to be list type in {val}")
-#         return val
 
 
 class Loc(abc.ABC):
