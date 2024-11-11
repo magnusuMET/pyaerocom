@@ -126,13 +126,6 @@ class StrWithDefault(Validator):
         return val
 
 
-class DictType(Validator):
-    def validate(self, val):
-        if not isinstance(val, dict):
-            raise ValueError(f"need dict, got {val}")
-        return val
-
-
 class FlexList(Validator):
     """list that can be instantated via input str, tuple or list or None"""
 
@@ -170,17 +163,6 @@ class ListOfStrings(FlexList):
         return val
 
 
-class DictStrKeysListVals(Validator):
-    def validate(self, val: dict):
-        if not isinstance(val, dict):
-            raise ValueError(f"need dict, got {val}")
-        if any(not isinstance(x, str) for x in val):
-            raise ValueError(f"all keys need to be str type in {val}")
-        if any(not isinstance(x, list) for x in val.values()):
-            raise ValueError(f"all values need to be list type in {val}")
-        return val
-
-
 class Loc(abc.ABC):
     """Abstract descriptor representing a path location
 
@@ -194,7 +176,12 @@ class Loc(abc.ABC):
     """
 
     def __init__(
-        self, default=None, assert_exists=False, auto_create=False, tooltip=None, logger=None
+        self,
+        default=None,
+        assert_exists=False,
+        auto_create=False,
+        tooltip=None,
+        logger=None,
     ):
         self.assert_exists = assert_exists
         self.auto_create = auto_create

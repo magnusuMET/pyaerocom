@@ -970,7 +970,11 @@ class UngriddedData:
                     continue
                 if freq is not None:
                     stat.resample_time(
-                        var, freq, how=resample_how, min_num_obs=min_num_obs, inplace=True
+                        var,
+                        freq,
+                        how=resample_how,
+                        min_num_obs=min_num_obs,
+                        inplace=True,
                     )
                 elif insert_nans:
                     stat.insert_nans_timeseries(var)
@@ -1249,7 +1253,13 @@ class UngriddedData:
                 - longitude: list of longitude coordinates
 
         """
-        out_data = {"stats": [], "station_name": [], "latitude": [], "failed": [], "longitude": []}
+        out_data = {
+            "stats": [],
+            "station_name": [],
+            "latitude": [],
+            "failed": [],
+            "longitude": [],
+        }
 
         _iter = self._generate_station_index(by_station_name, ignore_index)
         for idx in _iter:
@@ -1575,7 +1585,13 @@ class UngriddedData:
 
     # TODO: check, confirm and remove Beta version note in docstring
     def remove_outliers(
-        self, var_name, inplace=False, low=None, high=None, unit_ref=None, move_to_trash=True
+        self,
+        var_name,
+        inplace=False,
+        low=None,
+        high=None,
+        unit_ref=None,
+        move_to_trash=True,
     ):
         """Method that can be used to remove outliers from data
 
@@ -1900,7 +1916,10 @@ class UngriddedData:
                 var_outlier_ranges = {}
 
             for var in data.contains_vars:
-                lower, upper = None, None  # uses pyaerocom default specified in variables.ini
+                lower, upper = (
+                    None,
+                    None,
+                )  # uses pyaerocom default specified in variables.ini
                 if var in var_outlier_ranges:
                     lower, upper = var_outlier_ranges[var]
                 data = data.remove_outliers(
@@ -2907,7 +2926,13 @@ class UngriddedData:
             kwargs["label"] = info_str
 
         ax = plot_coordinates(
-            lons, lats, color=color, marker=marker, markersize=markersize, legend=legend, **kwargs
+            lons,
+            lats,
+            color=color,
+            marker=marker,
+            markersize=markersize,
+            legend=legend,
+            **kwargs,
         )
 
         if "title" in kwargs:
