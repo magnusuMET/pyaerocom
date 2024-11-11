@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import NewType, TypeVar
+from typing import TypeVar
 import functools
 from collections import defaultdict
 
@@ -17,10 +17,6 @@ from pyaerocom.tstype import TsType
 from pyaerocom.ungriddeddata import UngriddedData
 
 logger = logging.getLogger(__name__)
-
-
-MetadataEntry = NewType("MetadataEntry", dict[str, str | list[str]])
-Metadata = NewType("Metadata", dict[str, MetadataEntry])
 
 
 class ReadPyaro(ReadUngriddedBase):
