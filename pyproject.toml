@@ -22,7 +22,7 @@ classifiers = [
 requires-python = ">=3.10"
 dependencies = [
     "aerovaldb>=0.1.1",
-    "scitools-iris==3.11.0rc0",
+    "scitools-iris>=3.11.0",
     "xarray>=2022.12.0",
     "cartopy>=0.21.1",
     "matplotlib>=3.7.1",
@@ -47,7 +47,7 @@ dependencies = [
     'cf-units>=3.3.0',
     "pydantic>=2.7.1",
     "pyproj>=3.0.0",
-    "pyaro @ git+https://git@github.com/metno/pyaro@bump-numpy",
+    "pyaro>=0.0.14",
     "pooch>=1.7.0",
     "psutil>=5.0.0",
 ]
@@ -215,7 +215,7 @@ extras =
 setenv =
     UDUNITS2_XML_PATH=/usr/share/xml/udunits/udunits2-common.xml
 deps =
-    scitools-iris ==3.11.0rc0; python_version < "3.11"
+    scitools-iris ==3.11.0; python_version < "3.11"
     cartopy ==0.21.1; python_version < "3.11"
     matplotlib ==3.7.1; python_version < "3.11"
     scipy ==1.10.1; python_version < "3.11"
@@ -228,7 +228,7 @@ deps =
     typing-extensions ==4.6.1; python_version < "3.11"
     cf-units ==3.3.0; python_version < "3.11"
     pydantic ==2.7.1; python_version < "3.11"
-    pyaro == 0.0.10; python_version < "3.11"
+    pyaro == 0.0.14; python_version < "3.11"
     pooch ==1.7.0; python_version < "3.11"
     xarray ==2022.12.0; python_version < "3.11"
     pandas ==1.5.3; python_version < "3.11"
