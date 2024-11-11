@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from importlib import resources
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, Union
 
 import yaml
 from pydantic import BaseModel, ConfigDict
@@ -28,7 +28,7 @@ class PyaroConfig(BaseModel):
 
     name: str
     data_id: str
-    filename_or_obj_or_url: [str, list[str], Path, list[Path]]
+    filename_or_obj_or_url: Union [str, list[str], Path, list[Path]]
     filters: dict[str, dict[str, list[str]] | dict[str, list[tuple]]]
     name_map: dict[str, str] | None = None  # no Unit conversion option
 
