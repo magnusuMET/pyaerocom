@@ -1,3 +1,4 @@
+import warnings
 from warnings import warn
 
 
@@ -152,7 +153,9 @@ class ColorTheme:
         return s
 
 
-COLOR_THEME = ColorTheme(DEFAULT_THEME)
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=DeprecationWarning, module="pyaerocom")
+    COLOR_THEME = ColorTheme(DEFAULT_THEME)
 
 
 def get_color_theme(theme_name="dark"):

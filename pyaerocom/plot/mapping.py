@@ -21,7 +21,9 @@ from pyaerocom.plot.helpers import (
 )
 from pyaerocom.region import Region
 
-MPL_PARAMS = custom_mpl()
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=DeprecationWarning, module="pyaerocom")
+    MPL_PARAMS = custom_mpl()
 
 
 def get_cmap_maps_aerocom(color_theme=None, vmin=None, vmax=None):
