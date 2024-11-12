@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class ReadPyaro(ReadUngriddedBase):
-    __version__ = "1.0.1"
+    __version__ = "1.1.0"
 
     SUPPORTED_DATASETS = list(list_timeseries_engines().keys())
 
