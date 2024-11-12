@@ -4,6 +4,7 @@ import fnmatch
 import logging
 import os
 from datetime import datetime
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -163,7 +164,7 @@ class UngriddedData:
     @staticmethod
     def _from_raw_parts(
         data: npt.NDTArray[float],
-        metadata: dict[float, dict[str, str]],
+        metadata: dict[float, dict[str, Any]],
         meta_idx: dict[float, dict[str, list[int]]],
         var_idx: dict[str, float],
     ) -> UngriddedData:

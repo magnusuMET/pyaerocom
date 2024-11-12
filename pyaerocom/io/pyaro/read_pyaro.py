@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TypeVar
+from typing import TypeVar, Generic
 import functools
 from collections import defaultdict
 
@@ -137,7 +137,7 @@ class PyaroToUngriddedData:
 
         T = TypeVar("T")
 
-        class UniqueMapper:
+        class UniqueMapper(Generic[T]):
             """Assign a unique ID to each item it has
             not seen before
             """
@@ -159,11 +159,9 @@ class PyaroToUngriddedData:
             def __getitem__(self, key: T) -> float:
                 return self.inner[key]
 
-            def __contains__(self, item: T) -> bool:
-                return item in self.inner
-
-        station_mapper = UniqueMapper()
-        var_mapper = UniqueMapper()
+        # unique in (station_name, variable_name, units, tstype)
+        station_mapper: UniqueMapper[tuple[str, str, str, str]] = UniqueMapper()
+        var_mapper: UniqueMapper[str] = UniqueMapper()
 
         stations_with_metadata = self.get_stations()
 
