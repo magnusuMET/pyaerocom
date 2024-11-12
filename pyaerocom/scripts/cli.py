@@ -117,9 +117,9 @@ def init():
     ini_in_path = Path(__file__).parents[1].joinpath("data/paths.ini")
     ini_out_path = mypyaerocom / "paths.ini"
     if not ini_in_path.exists():
-        print(f"Error: {ini_in_path} does not exist. Something is wrong with you pyaerocom installation!")
+        print(f"Error: {ini_in_path} does not exist. Something is wrong with your pyaerocom installation!")
     if ini_out_path.exists():
-        print(f"Error: {ini_out_path} already exists. Please delete by hand if you really want to overwrite that with the default from pyaerocom.")
+        print(f"Error: {ini_out_path} already exists. Please delete it by hand if you really want to overwrite that with the default from pyaerocom.")
     else:
         try:
             copy2(ini_in_path, mypyaerocom)
