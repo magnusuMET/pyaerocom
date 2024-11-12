@@ -5,7 +5,6 @@ from shutil import copy2
 from typing import Optional
 
 import typer
-
 from pyaerocom import __package__, __version__, change_verbosity, const, download_minimal_dataset
 from pyaerocom.aeroval import EvalSetup, ExperimentProcessor
 from pyaerocom.io.cachehandler_ungridded import list_cache_files
@@ -112,12 +111,11 @@ def init():
     """init ~/MyPyaerocom directory and copy the default paths.ini there"""
 
     mypyaerocom = Path.home() / "MyPyaerocom"
-    if not Path.exists(mypyaerocom):
-        Path.mkdir(mypyaerocom)
+    mypyaerocom.mkdir(exist_ok=True)
 
     # copy default paths.ini if it doesn't exit
     ini_in_path = Path(__file__).parents[1].joinpath("data/paths.ini")
-    ini_out_path = Path.joinpath(mypyaerocom,"paths.ini")
+    ini_out_path = mypyaerocom / "paths.ini"
     if not ini_in_path.exists():
         print(f"Error: {ini_in_path} does not exist. Something is wrong with you pyaerocom installation!")
     if ini_out_path.exists():
