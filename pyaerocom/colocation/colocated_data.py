@@ -52,6 +52,19 @@ def ensure_correct_dimensions(data: xr.DataArray):
         raise DataDimensionError("first dimension (data_source) must be of length 2(obs, model)")
 
 
+def validate_file_naming_convention_matches_attrs(
+    file_model_name: str, file_obs_name: str, attrs_model_name: str, attrs_obs_name: str
+):
+    if file_model_name != attrs_model_name:
+        raise ValueError(
+            f"conflicting model metadata in colocated data object: {file_model_name=} but {attrs_model_name=}"
+        )
+    if file_obs_name != attrs_obs_name:
+        raise ValueError(
+            f"conflicting model metadata in colocated data object: {file_obs_name=} but {attrs_obs_name=}"
+        )
+
+
 class ColocatedData(BaseModel):
     """Class representing colocated and unified data from two sources
 
@@ -1292,6 +1305,9 @@ class ColocatedData(BaseModel):
             )
         arr = xr.load_dataarray(file_path)
         ensure_correct_dimensions(arr)
+        validate_file_naming_convention_matches_attrs(
+            self.model_name, self.obs_name, arr.model_name, arr.obs_name
+        )
         arr.attrs = self._meta_from_netcdf(arr.attrs)
         self.data = arr
         return self
