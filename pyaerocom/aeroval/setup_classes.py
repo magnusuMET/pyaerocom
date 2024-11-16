@@ -513,17 +513,26 @@ class EvalSetup(BaseModel):
     def serialize_obs_cfg(self, obs_cfg: ObsCollection):
         return obs_cfg.json_repr()
 
-    model_cfg: ModelCollection | dict = ModelCollection()
+    # model_cfg: ModelCollection | dict = ModelCollection()
 
-    @field_validator("model_cfg")
-    def validate_model_cfg(cls, v):
-        if isinstance(v, ModelCollection):
-            return v
-        return ModelCollection(v)
+    # @field_validator("model_cfg")
+    # def validate_model_cfg(cls, v):
+    #     if isinstance(v, ModelCollection):
+    #         return v
+    #     return ModelCollection(v)
+
+    @computed_field
+    @cached_property
+    def model_cfg(self) -> ModelCollection:
+        mc = ModelCollection()
+        for k, v in self.model_extra.model_cfg.items():
+            mc.add_entry(k, v)
+        return mc
 
     @field_serializer("model_cfg")
     def serialize_model_cfg(self, model_cfg: ModelCollection):
-        return model_cfg.json_repr()
+        # return model_cfg.json_repr()
+        return model_cfg.to_json()
 
     ###########################
     ##       Methods

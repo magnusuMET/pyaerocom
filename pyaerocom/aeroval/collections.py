@@ -1,5 +1,6 @@
 import abc
 from fnmatch import fnmatch
+import json
 
 from pyaerocom._lowlevel_helpers import BrowseDict
 from pyaerocom.aeroval.modelentry import ModelEntry
@@ -166,14 +167,78 @@ class ObsCollection(BaseCollection):
         return list({x.obs_vert_type for x in self.values()})
 
 
-class ModelCollection(BaseCollection):
+# class ModelCollection(BaseCollection):
+#     """
+#     Dict-like object that represents a collection of model entries
+
+#     Keys are model names, values are instances of :class:`ModelEntry`. Values
+#     can also be assigned as dict and will automatically be converted into
+#     instances of :class:`ModelEntry`.
+
+
+#     Note
+#     ----
+#     Entries must not necessarily be only models but may also be observations.
+#     Entries provided in this collection refer to the x-axis in the AeroVal
+#     heatmap display and must fulfill the protocol defined by
+#     :class:`ModelEntry`.
+
+#     """
+
+#     SETTER_CONVERT = {dict: ModelEntry}
+
+#     def get_entry(self, key) -> ModelEntry:
+#         """Get model entry configuration
+
+#         Since the configuration files for experiments are in json format, they
+#         do not allow the storage of executable custom methods for model data
+#         reading. Instead, these can be specified in a python module that may
+#         be specified via :attr:`add_methods_file` and that contains a
+#         dictionary `FUNS` that maps the method names with the callable methods.
+
+#         As a result, this means that, by default, custom read methods for
+#         individual models in :attr:`model_config` do not contain the
+#         callable methods but only the names. This method will take care of
+#         handling this and will return a dictionary where potential custom
+#         method strings have been converted to the corresponding callable
+#         methods.
+
+#         Parameters
+#         ----------
+#         model_name : str
+#             name of model
+
+#         Returns
+#         -------
+#         dict
+#             Dictionary that specifies the model setup ready for the analysis
+#         """
+#         try:
+#             entry = self[key]
+#             entry.model_name = key
+#             return entry
+#         except (KeyError, AttributeError):
+#             raise EntryNotAvailable(f"no such entry {key}")
+
+#     @property
+#     def web_interface_names(self) -> list:
+#         """
+#         List of web interface names for each obs entry
+
+#         Returns
+#         -------
+#         list
+#         """
+#         return self.keylist()
+
+
+class ModelCollection:
     """
-    Dict-like object that represents a collection of model entries
+    Object that represents a collection of model entries
 
     Keys are model names, values are instances of :class:`ModelEntry`. Values
     can also be assigned as dict and will automatically be converted into
     instances of :class:`ModelEntry`.
-
 
     Note
     ----
@@ -181,27 +246,24 @@ class ModelCollection(BaseCollection):
     Entries provided in this collection refer to the x-axis in the AeroVal
     heatmap display and must fulfill the protocol defined by
     :class:`ModelEntry`.
-
     """
 
-    SETTER_CONVERT = {dict: ModelEntry}
+    def __init__(self):
+        self._entries = {}
+
+    def add_entry(self, key, entry: dict | ModelEntry):
+        if isinstance(entry, dict):
+            entry = ModelEntry(**entry)
+        entry.model_name = key
+        self._entries[key] = entry
+
+    def remove_entry(self, key):
+        if key in self._entries:
+            del self._entries[key]
 
     def get_entry(self, key) -> ModelEntry:
-        """Get model entry configuration
-
-        Since the configuration files for experiments are in json format, they
-        do not allow the storage of executable custom methods for model data
-        reading. Instead, these can be specified in a python module that may
-        be specified via :attr:`add_methods_file` and that contains a
-        dictionary `FUNS` that maps the method names with the callable methods.
-
-        As a result, this means that, by default, custom read methods for
-        individual models in :attr:`model_config` do not contain the
-        callable methods but only the names. This method will take care of
-        handling this and will return a dictionary where potential custom
-        method strings have been converted to the corresponding callable
-        methods.
-
+        """
+        Get model entry configuration
         Parameters
         ----------
         model_name : str
@@ -212,12 +274,21 @@ class ModelCollection(BaseCollection):
         dict
             Dictionary that specifies the model setup ready for the analysis
         """
-        try:
-            entry = self[key]
-            entry.model_name = key
-            return entry
-        except (KeyError, AttributeError):
+        if key in self._entries:
+            return self._entries[key]
+        else:
             raise EntryNotAvailable(f"no such entry {key}")
+
+    def keylist(self) -> list:
+        """
+        Return list of keys in collection.
+
+        Returns
+        -------
+        list
+            list of keys in collection.
+        """
+        return list(self._entries.keys())
 
     @property
     def web_interface_names(self) -> list:
@@ -229,3 +300,7 @@ class ModelCollection(BaseCollection):
         list
         """
         return self.keylist()
+
+    def to_json(self) -> str:
+        """Serialize ModelCollection to a JSON string."""
+        return json.dumps({k: v.dict() for k, v in self._entries.items()}, default=str)
