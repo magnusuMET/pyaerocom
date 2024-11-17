@@ -16,13 +16,17 @@ def test_obscollection():
 
 
 def test_modelcollection():
-    mc = ModelCollection(model1=dict(model_id="bla", obs_vars="od550aer", obs_vert_type="Column"))
+    mc = ModelCollection()
+    mc.add_entry("model1", dict(model_id="bla", obs_vars="od550aer", obs_vert_type="Column"))
     assert mc
 
-    mc["ECMWF_OSUITE"] = dict(
-        model_id="ECMWF_OSUITE",
-        obs_vars=["concpm10"],
-        obs_vert_type="Surface",
+    mc.add_entry(
+        "ECMWF_OSUITE",
+        dict(
+            model_id="ECMWF_OSUITE",
+            obs_vars=["concpm10"],
+            obs_vert_type="Surface",
+        ),
     )
 
-    assert "ECMWF_OSUITE" in mc
+    assert "ECMWF_OSUITE" in mc.keylist()

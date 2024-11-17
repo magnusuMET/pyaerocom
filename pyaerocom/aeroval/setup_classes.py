@@ -525,7 +525,7 @@ class EvalSetup(BaseModel):
     @cached_property
     def model_cfg(self) -> ModelCollection:
         mc = ModelCollection()
-        for k, v in self.model_extra.model_cfg.items():
+        for k, v in self.model_extra.get("model_cfg", {}).items():
             mc.add_entry(k, v)
         return mc
 

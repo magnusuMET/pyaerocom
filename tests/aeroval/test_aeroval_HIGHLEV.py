@@ -113,8 +113,8 @@ def test_reanalyse_existing(eval_config: dict, reanalyse_existing: bool):
 @pytest.mark.parametrize("cfg", ["cfgexp4"])
 def test_superobs_different_resolutions(eval_config: dict):
     cfg = EvalSetup(**eval_config)
-    cfg.model_cfg["TM5-AP3-CTRL"].model_ts_type_read = None
-    cfg.model_cfg["TM5-AP3-CTRL"].flex_ts_type = True
+    cfg.model_cfg.get_entry("TM5-AP3-CTRL").model_ts_type_read = None
+    cfg.model_cfg.get_entry("TM5-AP3-CTRL").flex_ts_type = True
 
     cfg.obs_cfg["AERONET-Sun"].ts_type = "daily"
     cfg.obs_cfg["AERONET-SDA"].ts_type = "monthly"

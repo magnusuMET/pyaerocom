@@ -251,17 +251,23 @@ class ModelCollection:
     def __init__(self):
         self._entries = {}
 
-    def add_entry(self, key, entry: dict | ModelEntry):
+    def __iter__(self):
+        """
+        Yield each ModelEntry in the collection.
+        """
+        yield from self._entries.values()
+
+    def add_entry(self, key: str, entry: dict | ModelEntry):
         if isinstance(entry, dict):
             entry = ModelEntry(**entry)
         entry.model_name = key
         self._entries[key] = entry
 
-    def remove_entry(self, key):
+    def remove_entry(self, key: str):
         if key in self._entries:
             del self._entries[key]
 
-    def get_entry(self, key) -> ModelEntry:
+    def get_entry(self, key: str) -> ModelEntry:
         """
         Get model entry configuration
         Parameters
@@ -279,16 +285,46 @@ class ModelCollection:
         else:
             raise EntryNotAvailable(f"no such entry {key}")
 
-    def keylist(self) -> list:
-        """
-        Return list of keys in collection.
+    # def keylist(self) -> list:
+    #     """
+    #     Return list of keys in collection.
+
+    #     Returns
+    #     -------
+    #     list
+    #         list of keys in collection.
+    #     """
+    #     return list(self._entries.keys())
+
+    def keylist(self, name_or_pattern: str = None) -> list:
+        """Find model names that match input search pattern(s)
+
+        Parameters
+        ----------
+        name_or_pattern : str, optional
+            Name or pattern specifying search string.
 
         Returns
         -------
         list
-            list of keys in collection.
+            list of keys in collection that match input requirements. If
+            `name_or_pattern` is None, all keys will be returned.
+
+        Raises
+        ------
+        KeyError
+            if no matches can be found
         """
-        return list(self._entries.keys())
+        if name_or_pattern is None:
+            name_or_pattern = "*"
+
+        matches = []
+        for key in self._entries.keys():
+            if fnmatch(key, name_or_pattern) and key not in matches:
+                matches.append(key)
+        if len(matches) == 0:
+            raise KeyError(f"No matches could be found that match input {name_or_pattern}")
+        return matches
 
     @property
     def web_interface_names(self) -> list:
