@@ -2,82 +2,12 @@ import abc
 from fnmatch import fnmatch
 import json
 
-from pyaerocom._lowlevel_helpers import BrowseDict
 from pyaerocom.aeroval.modelentry import ModelEntry
 from pyaerocom.aeroval.obsentry import ObsEntry
-from pyaerocom.exceptions import EntryNotAvailable, EvalEntryNameError
+from pyaerocom.exceptions import EntryNotAvailable
 
 
-class BaseCollection(BrowseDict, abc.ABC):
-    #: maximum length of entry names
-    MAXLEN_KEYS = 25
-    #: Invalid chars in entry names
-    FORBIDDEN_CHARS_KEYS = []
-
-    # TODO: Wait a few release cycles after v0.23.0 and see if this can be removed
-    def _check_entry_name(self, key):
-        if any([x in key for x in self.FORBIDDEN_CHARS_KEYS]):
-            raise EvalEntryNameError(
-                f"Invalid name: {key}. Must not contain any of the following "
-                f"characters: {self.FORBIDDEN_CHARS_KEYS}"
-            )
-
-    def __setitem__(self, key, value):
-        self._check_entry_name(key)
-        super().__setitem__(key, value)
-
-    def keylist(self, name_or_pattern: str = None) -> list:
-        """Find model names that match input search pattern(s)
-
-        Parameters
-        ----------
-        name_or_pattern : str, optional
-            Name or pattern specifying search string.
-
-        Returns
-        -------
-        list
-            list of keys in collection that match input requirements. If
-            `name_or_pattern` is None, all keys will be returned.
-
-        Raises
-        ------
-        KeyError
-            if no matches can be found
-        """
-        if name_or_pattern is None:
-            name_or_pattern = "*"
-
-        matches = []
-        for key in self.keys():
-            if fnmatch(key, name_or_pattern) and key not in matches:
-                matches.append(key)
-        if len(matches) == 0:
-            raise KeyError(f"No matches could be found that match input {name_or_pattern}")
-        return matches
-
-    @abc.abstractmethod
-    def get_entry(self, key) -> object:
-        """
-        Getter for eval entries
-
-        Raises
-        ------
-        KeyError
-            if input name is not in this collection
-        """
-        pass
-
-    @property
-    @abc.abstractmethod
-    def web_interface_names(self) -> list:
-        """
-        List of webinterface names for
-        """
-        pass
-
-
-class Collection(abc.ABC):
+class BaseCollection(abc.ABC):
     def __init__(self):
         self._entries = {}
 
@@ -145,9 +75,9 @@ class Collection(abc.ABC):
         return json.dumps({k: v.dict() for k, v in self._entries.items()}, default=str)
 
 
-class ObsCollection(Collection):
+class ObsCollection(BaseCollection):
     """
-    Dict-like object that represents a collection of obs entries
+    Object that represents a collection of obs entries
 
     Keys are obs names, values are instances of :class:`ObsEntry`. Values can
     also be assigned as dict and will automatically be converted into
@@ -223,10 +153,10 @@ class ObsCollection(Collection):
             corresponding name
 
         """
-        # LB: private method?
+        entry = self._entries.get(key)
         return (
-            self._entries[key].web_interface_name
-            if self._entries[key].web_interface_name is not None
+            entry.web_interface_name
+            if entry is not None and entry.web_interface_name is not None
             else key
         )
 
@@ -247,7 +177,7 @@ class ObsCollection(Collection):
         return list({x.obs_vert_type for x in self._entries.values()})
 
 
-class ModelCollection(Collection):
+class ModelCollection(BaseCollection):
     """
     Object that represents a collection of model entries
 
