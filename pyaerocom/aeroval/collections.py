@@ -101,7 +101,7 @@ class ObsCollection(BaseCollection):
         if key in self._entries:
             del self._entries[key]
 
-    def get_entry(self, key) -> ObsEntry:
+    def get_entry(self, key: str) -> ObsEntry:
         """
         Getter for obs entries
 
@@ -132,7 +132,7 @@ class ObsCollection(BaseCollection):
             vars.extend(ocfg.get_all_vars())
         return sorted(list(set(vars)))
 
-    def get_web_interface_name(self, key):
+    def get_web_interface_name(self, key: str) -> str:
         """
         Get webinterface name for entry
 
