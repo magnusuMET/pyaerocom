@@ -501,17 +501,25 @@ class EvalSetup(BaseModel):
 
     # These attributes require special attention b/c they're not based on Pydantic's BaseModel class.
 
-    obs_cfg: ObsCollection | dict = ObsCollection()
+    # obs_cfg: ObsCollection | dict = ObsCollection()
 
-    @field_validator("obs_cfg")
-    def validate_obs_cfg(cls, v):
-        if isinstance(v, ObsCollection):
-            return v
-        return ObsCollection(v)
+    # @field_validator("obs_cfg")
+    # def validate_obs_cfg(cls, v):
+    #     if isinstance(v, ObsCollection):
+    #         return v
+    #     return ObsCollection(v)
+
+    @computed_field
+    @cached_property
+    def obs_cfg(self) -> ObsCollection:
+        oc = ObsCollection()
+        for k, v in self.model_extra.get("obs_cfg", {}).items():
+            oc.add_entry(k, v)
+        return oc
 
     @field_serializer("obs_cfg")
     def serialize_obs_cfg(self, obs_cfg: ObsCollection):
-        return obs_cfg.json_repr()
+        return obs_cfg.to_json()
 
     # model_cfg: ModelCollection | dict = ModelCollection()
 

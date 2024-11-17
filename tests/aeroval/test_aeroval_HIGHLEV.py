@@ -116,8 +116,8 @@ def test_superobs_different_resolutions(eval_config: dict):
     cfg.model_cfg.get_entry("TM5-AP3-CTRL").model_ts_type_read = None
     cfg.model_cfg.get_entry("TM5-AP3-CTRL").flex_ts_type = True
 
-    cfg.obs_cfg["AERONET-Sun"].ts_type = "daily"
-    cfg.obs_cfg["AERONET-SDA"].ts_type = "monthly"
+    cfg.obs_cfg.get_entry("AERONET-Sun").ts_type = "daily"
+    cfg.obs_cfg.get_entry("AERONET-SDA").ts_type = "monthly"
 
     proc = ExperimentProcessor(cfg)
     proc.exp_output.delete_experiment_data(also_coldata=True)

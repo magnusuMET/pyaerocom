@@ -77,96 +77,6 @@ class BaseCollection(BrowseDict, abc.ABC):
         pass
 
 
-class ObsCollection(BaseCollection):
-    """
-    Dict-like object that represents a collection of obs entries
-
-    Keys are obs names, values are instances of :class:`ObsEntry`. Values can
-    also be assigned as dict and will automatically be converted into
-    instances of :class:`ObsEntry`.
-
-
-    Note
-    ----
-    Entries must not necessarily be only observations but may also be models.
-    Entries provided in this collection refer to the y-axis in the AeroVal
-    heatmap display and must fulfill the protocol defined by :class:`ObsEntry`.
-
-    """
-
-    SETTER_CONVERT = {dict: ObsEntry}
-
-    def get_entry(self, key) -> object:
-        """
-        Getter for obs entries
-
-        Raises
-        ------
-        KeyError
-            if input name is not in this collection
-        """
-        try:
-            entry = self[key]
-            entry.obs_name = self.get_web_interface_name(key)
-            return entry
-        except (KeyError, AttributeError):
-            raise EntryNotAvailable(f"no such entry {key}")
-
-    def get_all_vars(self) -> list[str]:
-        """
-        Get unique list of all obs variables from all entries
-
-        Returns
-        -------
-        list
-            list of variables specified in obs collection
-
-        """
-        vars = []
-        for ocfg in self.values():
-            vars.extend(ocfg.get_all_vars())
-        return sorted(list(set(vars)))
-
-    def get_web_interface_name(self, key):
-        """
-        Get webinterface name for entry
-
-        Note
-        ----
-        Normally this is the key of the obsentry in :attr:`obs_config`,
-        however, it might be specified explicitly via key `web_interface_name`
-        in the corresponding value.
-
-        Parameters
-        ----------
-        key : str
-            key of entry.
-
-        Returns
-        -------
-        str
-            corresponding name
-
-        """
-        return self[key].web_interface_name if self[key].web_interface_name is not None else key
-
-    @property
-    def web_interface_names(self) -> list:
-        """
-        List of web interface names for each obs entry
-
-        Returns
-        -------
-        list
-        """
-        return [self.get_web_interface_name(key) for key in self.keylist()]
-
-    @property
-    def all_vert_types(self):
-        """List of unique vertical types specified in this collection"""
-        return list({x.obs_vert_type for x in self.values()})
-
-
 class Collection(abc.ABC):
     def __init__(self):
         self._entries = {}
@@ -233,6 +143,108 @@ class Collection(abc.ABC):
     def to_json(self) -> str:
         """Serialize ModelCollection to a JSON string."""
         return json.dumps({k: v.dict() for k, v in self._entries.items()}, default=str)
+
+
+class ObsCollection(Collection):
+    """
+    Dict-like object that represents a collection of obs entries
+
+    Keys are obs names, values are instances of :class:`ObsEntry`. Values can
+    also be assigned as dict and will automatically be converted into
+    instances of :class:`ObsEntry`.
+
+
+    Note
+    ----
+    Entries must not necessarily be only observations but may also be models.
+    Entries provided in this collection refer to the y-axis in the AeroVal
+    heatmap display and must fulfill the protocol defined by :class:`ObsEntry`.
+
+    """
+
+    def add_entry(self, key: str, entry: dict | ObsEntry):
+        if isinstance(entry, dict):
+            entry = ObsEntry(**entry)
+        self._entries[key] = entry
+
+    def remove_entry(self, key: str):
+        if key in self._entries:
+            del self._entries[key]
+
+    def get_entry(self, key) -> ObsEntry:
+        """
+        Getter for obs entries
+
+        Raises
+        ------
+        KeyError
+            if input name is not in this collection
+        """
+        try:
+            entry = self._entries[key]
+            entry.obs_name = self.get_web_interface_name(key)
+            return entry
+        except (KeyError, AttributeError):
+            raise EntryNotAvailable(f"no such entry {key}")
+
+    def get_all_vars(self) -> list[str]:
+        """
+        Get unique list of all obs variables from all entries
+
+        Returns
+        -------
+        list
+            list of variables specified in obs collection
+
+        """
+        vars = []
+        for ocfg in self._entries.values():
+            vars.extend(ocfg.get_all_vars())
+        return sorted(list(set(vars)))
+
+    def get_web_interface_name(self, key):
+        """
+        Get webinterface name for entry
+
+        Note
+        ----
+        Normally this is the key of the obsentry in :attr:`obs_config`,
+        however, it might be specified explicitly via key `web_interface_name`
+        in the corresponding value.
+
+        Parameters
+        ----------
+        key : str
+            key of entry.
+
+        Returns
+        -------
+        str
+            corresponding name
+
+        """
+        # LB: private method?
+        return (
+            self._entries[key].web_interface_name
+            if self._entries[key].web_interface_name is not None
+            else key
+        )
+
+    @property
+    def web_interface_names(self) -> list:
+        """
+        List of web interface names for each obs entry
+
+        Returns
+        -------
+        list
+        """
+        return [self.get_web_interface_name(key) for key in self.keylist()]
+
+    @property
+    def all_vert_types(self):
+        """List of unique vertical types specified in this collection"""
+        return list({x.obs_vert_type for x in self._entries.values()})
 
 
 class ModelCollection(Collection):
