@@ -9,24 +9,64 @@ from pyaerocom.exceptions import EntryNotAvailable
 
 class BaseCollection(abc.ABC):
     def __init__(self):
+        """
+        Initialize an instance of BaseCollection.
+        The instance maintains a dictionary of entries.
+        """
         self._entries = {}
 
     def __iter__(self):
         """
-        Yield each entry in the collection.
+        Iterates over each entry in the collection.
+
+        Yields
+        ------
+        object
+            The next entry in the collection.
         """
         yield from self._entries.values()
 
     @abc.abstractmethod
     def add_entry(self, key, value) -> None:
+        """
+        Abstract method to add an entry to the collection.
+
+        Parameters
+        ----------
+        key: Hashable
+            The key of the entry.
+        value: object
+            The value of the entry.
+        """
         pass
 
     @abc.abstractmethod
     def remove_entry(self, key) -> None:
+        """
+        Abstract method to remove an entry from the collection.
+
+        Parameters
+        ----------
+        key: Hashable
+            The key of the entry to be removed.
+        """
         pass
 
     @abc.abstractmethod
     def get_entry(self, key) -> object:
+        """
+        Abstract method to get an entry from the collection.
+
+        Parameters
+        ----------
+        key: Hashable
+            The key of the entry to retrieve.
+
+        Returns
+        -------
+        object
+            The entry associated with the provided key.
+        """
         pass
 
     def keylist(self, name_or_pattern: str = None) -> list[str]:
@@ -79,7 +119,7 @@ class ObsCollection(BaseCollection):
     """
     Object that represents a collection of obs entries
 
-    Keys are obs names, values are instances of :class:`ObsEntry`. Values can
+    "Keys" are obs names, values are instances of :class:`ObsEntry`. Values can
     also be assigned as dict and will automatically be converted into
     instances of :class:`ObsEntry`.
 
@@ -181,7 +221,7 @@ class ModelCollection(BaseCollection):
     """
     Object that represents a collection of model entries
 
-    Keys are model names, values are instances of :class:`ModelEntry`. Values
+    "Keys" are model names, values are instances of :class:`ModelEntry`. Values
     can also be assigned as dict and will automatically be converted into
     instances of :class:`ModelEntry`.
 
