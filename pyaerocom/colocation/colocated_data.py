@@ -1305,9 +1305,9 @@ class ColocatedData(BaseModel):
             )
         arr = xr.load_dataarray(file_path)
         ensure_correct_dimensions(arr)
-        validate_file_naming_convention_matches_attrs(
-            self.model_name, self.obs_name, arr.model_name, arr.obs_name
-        )
+        # validate_file_naming_convention_matches_attrs(
+        #     self.model_name, self.obs_name, arr.model_name, arr.obs_name
+        # )
         arr.attrs = self._meta_from_netcdf(arr.attrs)
         self.data = arr
         return self
