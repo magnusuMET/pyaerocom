@@ -111,9 +111,6 @@ class BaseCollection(abc.ABC):
         """
         return self.keylist()
 
-    # def to_json(self) -> str:
-    #     """Serialize ModelCollection to a JSON string."""
-    #     return json.dumps({k: v.dict() for k, v in self._entries.items()}, default=str)
     def json_repr(self) -> dict:
         """
         Convert object to serializable json dict
