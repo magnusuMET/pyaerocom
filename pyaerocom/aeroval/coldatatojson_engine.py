@@ -147,7 +147,7 @@ class ColdataToJsonEngine(ProcessingEngine):
             obs_var = model_var = coldata.metadata["obs_vars"]
             coldata.metadata["var_name_input"] = [obs_var, model_var]
             logger.warning(
-                "Failed to access var_name_input from coldata.metadata. "
+                "ColdataToJsonEngine: Failed to access var_name_input from coldata.metadata. "
                 "This could be because you're using a ColocatedData object created outside of pyaerocom. "
                 "Setting obs_var and model_data to value in obs_vars instead. "
                 "Setting var_input_data to these values as well. "
