@@ -1,6 +1,5 @@
 import abc
 from fnmatch import fnmatch
-import json
 
 from pyaerocom.aeroval.modelentry import ModelEntry
 from pyaerocom.aeroval.obsentry import ObsEntry
@@ -110,9 +109,22 @@ class BaseCollection(abc.ABC):
         """
         return self.keylist()
 
-    def to_json(self) -> str:
-        """Serialize ModelCollection to a JSON string."""
-        return json.dumps({k: v.dict() for k, v in self._entries.items()}, default=str)
+    def as_dict(self) -> dict:
+        """
+        Convert object to serializable dict
+
+        Returns
+        -------
+        dict
+            content of class
+
+        """
+        output = {}
+        for key, val in self._entries.items():
+            if hasattr(val, "json_repr"):
+                val = val.json_repr()
+            output[key] = val
+        return output
 
 
 class ObsCollection(BaseCollection):
