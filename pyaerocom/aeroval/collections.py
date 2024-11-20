@@ -7,8 +7,6 @@ from pyaerocom.exceptions import EntryNotAvailable
 
 
 class BaseCollection(abc.ABC):
-    IGNORE_JSON = []
-
     def __init__(self):
         """
         Initialize an instance of BaseCollection.
@@ -111,9 +109,9 @@ class BaseCollection(abc.ABC):
         """
         return self.keylist()
 
-    def json_repr(self) -> dict:
+    def as_dict(self) -> dict:
         """
-        Convert object to serializable json dict
+        Convert object to serializable dict
 
         Returns
         -------
@@ -123,8 +121,6 @@ class BaseCollection(abc.ABC):
         """
         output = {}
         for key, val in self._entries.items():
-            if key in self.IGNORE_JSON:
-                continue
             if hasattr(val, "json_repr"):
                 val = val.json_repr()
             output[key] = val

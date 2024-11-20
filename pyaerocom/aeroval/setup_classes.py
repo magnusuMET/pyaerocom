@@ -511,7 +511,7 @@ class EvalSetup(BaseModel):
 
     @field_serializer("obs_cfg")
     def serialize_obs_cfg(self, obs_cfg: ObsCollection):
-        return obs_cfg.json_repr()
+        return obs_cfg.as_dict()
 
     @computed_field
     @cached_property
@@ -523,7 +523,7 @@ class EvalSetup(BaseModel):
 
     @field_serializer("model_cfg")
     def serialize_model_cfg(self, model_cfg: ModelCollection):
-        return model_cfg.json_repr()
+        return model_cfg.as_dict()
 
     ###########################
     ##       Methods
