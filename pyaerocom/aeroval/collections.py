@@ -165,7 +165,6 @@ class ObsCollection(BaseCollection):
         """
         try:
             entry = self._entries[key]
-            # entry.obs_name = self.get_web_interface_name(key)
             return entry
         except (KeyError, AttributeError):
             raise EntryNotAvailable(f"no such entry {key}")
