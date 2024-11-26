@@ -104,6 +104,7 @@ class ObsEntry(BaseModel):
     ######################
     ## Optional attributes
     ######################
+    obs_name: str | None = None
     obs_ts_type_read: str | dict | None = None
     obs_vert_type: Literal["Column", "Profile", "Surface", "ModelLevel"] = "Surface"
     obs_aux_requires: dict[str, dict] = {}
