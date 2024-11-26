@@ -132,7 +132,8 @@ class ExperimentProcessor(ProcessingEngine, HasColocator):
         self.cfg._check_time_config()
 
         obs_list = self.cfg.obs_cfg.keylist(obs_name)
-        if not self.cfg.model_cfg:
+        model_list = self.cfg.model_cfg.keylist(model_name)
+        if not model_list:
             logger.info("No model found, will make dummy model data")
             self.cfg.webdisp_opts.hide_charts = ["scatterplot"]
             self.cfg.webdisp_opts.pages = ["evaluation", "infos"]
@@ -142,8 +143,6 @@ class ExperimentProcessor(ProcessingEngine, HasColocator):
         else:
             model_id = None
             use_dummy_model = False
-
-        model_list = self.cfg.model_cfg.keylist(model_name)
 
         logger.info("Start processing")
 
