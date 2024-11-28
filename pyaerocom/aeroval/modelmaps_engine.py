@@ -116,12 +116,13 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                     _files = self._process_contour_map_var(
                         model_name, var, self.reanalyse_existing
                     )
-                    files.extend(_files)
+                    files.append(_files)
                 if self.cfg.modelmaps_opts.plot_types == {OVERLAY} or make_overlay:
                     # create overlay (pixel) plots
                     _files = self._process_overlay_map_var(
                         model_name, var, self.reanalyse_existing
                     )
+                    files.extend(_files)
 
             except ModelVarNotAvailable as ex:
                 logger.warning(f"{ex}")
@@ -262,6 +263,7 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
 
         tst = _jsdate_list(data)
         data = data.to_xarray()
+        files = []
         for i, date in enumerate(tst):
             outname = f"{model_name}_{var}_{date}"
 
@@ -289,6 +291,8 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                     var,
                     date,
                 )
+            files.append(fp_overlay + "." + self.cfg.modelmaps_opts.overlay_save_format)
+        return files
 
     def _get_maps_freq(self) -> TsType:
         """
