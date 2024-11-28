@@ -138,6 +138,7 @@ class ExperimentProcessor(ProcessingEngine, HasColocator):
             self.cfg.webdisp_opts.hide_charts = ["scatterplot"]
             self.cfg.webdisp_opts.pages = ["evaluation", "infos"]
             model_id = make_dummy_model(obs_list, self.cfg)
+            model_list.append("dummy")
             self.cfg.processing_opts.obs_only = True
             use_dummy_model = True
         else:

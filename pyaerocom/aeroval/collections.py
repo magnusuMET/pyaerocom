@@ -94,8 +94,6 @@ class BaseCollection(abc.ABC):
         for key in self._entries.keys():
             if fnmatch(key, name_or_pattern) and key not in matches:
                 matches.append(key)
-        if len(matches) == 0:
-            raise KeyError(f"No matches could be found that match input {name_or_pattern}")
         return matches
 
     @property
