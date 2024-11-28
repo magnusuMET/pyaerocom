@@ -58,6 +58,10 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                 logger.warning(f"no data for model {model}, skipping")
                 continue
             all_files.extend(files)
+
+        self.cfg.modelmaps_opts.maps_freq = (
+            self._get_maps_freq()
+        )  # reassign "coarsest" to actual coarsest frequency
         return files
 
     def _get_vars_to_process(self, model_name, var_list):
@@ -307,16 +311,12 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
         if maps_freq == "coarsest":  # TODO: Implement this in terms of a TsType object. #1267
             freq = min(TsType(fq) for fq in self.cfg.time_cfg.freqs)
             freq = min(freq, self.cfg.time_cfg.main_freq)
-            self.cfg.modelmaps_opts.maps_freq = str(
-                freq
-            )  # reassign "coarsest" to actual coarsest frequency
-        else:
             freq = maps_freq
         return freq
 
     def _get_read_model_freq(self, model_ts_types: list) -> TsType:
         """
-        Tries to find the best TS type to read. Checks for available ts types with the following priority
+        Tries to find the best TsType to read. Checks for available ts types with the following priority
 
         1. If the freq from _get_maps_freq is available
         2. If maps_freq is explicitly given, and is available
