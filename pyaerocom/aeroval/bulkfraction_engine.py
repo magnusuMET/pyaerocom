@@ -30,9 +30,14 @@ class BulkFractionEngine(ProcessingEngine, HasColocator):
         elif not isinstance(var_list, list):
             raise ValueError(f"invalid input for var_list: {var_list}.")
 
+        files_to_convert = []
         for var_name in var_list:
             bulk_vars = self._get_bulk_vars(var_name, sobs_cfg)
-            self._run_var(model_name, obs_name, var_name, bulk_vars)
+            cd, fp = self._run_var(model_name, obs_name, var_name, bulk_vars)
+            files_to_convert.append(fp)
+
+        engine = ColdataToJsonEngine(self.cfg)
+        engine.run(files_to_convert)
 
     def _get_bulk_vars(self, var_name: str, cfg: ObsEntry) -> list:
         bulk_vars = cfg.bulk_vars
@@ -46,24 +51,42 @@ class BulkFractionEngine(ProcessingEngine, HasColocator):
 
         return bulk_vars[var_name]
 
-    def _run_var(self, model_name: str, obs_name: str, var_name: str, bulk_vars: list):
+    def _run_var(
+        self, model_name: str, obs_name: str, var_name: str, bulk_vars: list
+    ) -> tuple[ColocatedData, str]:
 
         col = self.get_colocator(bulk_vars, model_name, obs_name)
         # if self.cfg.processing_opts.only_json:
         #     files_to_convert = col.get_available_coldata_files(bulk_vars)
         # else:
         coldatas = col.run(bulk_vars)
-        files_to_convert = col.files_written
+        # files_to_convert = col.files_written
         num_key, denum_key = bulk_vars[0], bulk_vars[1]
-        self._divide_coldatas(
+        cd = self._divide_coldatas(
             coldatas[num_key][num_key], coldatas[denum_key][denum_key], var_name
         )
+        fp = cd.to_netcdf(
+            out_dir=col.output_dir,
+            savename=cd._aerocom_savename(
+                var_name,
+                obs_name,
+                var_name,
+                model_name,
+                col.get_start_str(),
+                col.get_stop_str(),
+                col.colocation_setup.ts_type,
+                col.colocation_setup.filter_name,
+                None,  # cd.data.attrs["vert_code"],
+            ),
+        )
+        return cd, fp
 
     def _divide_coldatas(
         self, num_coldata: ColocatedData, denum_coldata: ColocatedData, var_name: str
     ) -> ColocatedData:
         new_data = num_coldata.data / denum_coldata.data
         cd = ColocatedData(new_data)
+        cd.data.attrs = num_coldata.data.attrs
         cd.data.attrs["var_name"] = [var_name, var_name]
         cd.metadata["var_name_input"] = [var_name, var_name]
         return cd
