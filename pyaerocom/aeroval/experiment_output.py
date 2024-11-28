@@ -162,7 +162,7 @@ class ExperimentOutput(ProjectOutput):
             return False
         elif (
             not len(self._get_json_output_files("map")) > 0
-            and not self.cfg.processing_opts.only_model_maps  # LB: Come back to this
+            and not self.cfg.processing_opts.only_model_maps
         ):
             return False
         return True
