@@ -156,7 +156,14 @@ class ExperimentOutput(ProjectOutput):
         """
         if self.exp_id not in os.listdir(self.proj_dir):
             return False
-        elif not len(self._get_json_output_files("map")) > 0:
+        elif self.cfg.processing_opts.only_model_maps and not self._has_files(
+            self.out_dirs_json["contour"]
+        ):
+            return False
+        elif (
+            not len(self._get_json_output_files("map")) > 0
+            and not self.cfg.processing_opts.only_model_maps  # LB: Come back to this
+        ):
             return False
         return True
 
@@ -532,6 +539,13 @@ class ExperimentOutput(ProjectOutput):
     def _get_json_output_files(self, dirname) -> list[str]:
         dirloc = self.out_dirs_json[dirname]
         return glob.glob(f"{dirloc}/*.json")
+
+    def _has_files(self, directory: str):
+        """
+        Checks if a directory contains any files.
+        The contour directory may contains files, but these are not json files (geojson, webp, png)
+        """
+        return any(p.is_file() for p in pathlib.Path(directory).rglob("*"))
 
     def _get_cmap_info(self, var) -> dict[str, str | list[float]]:
         var_ranges_defaults = self.cfg.var_scale_colmap

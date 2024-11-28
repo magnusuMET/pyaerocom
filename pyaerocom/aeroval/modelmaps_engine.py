@@ -307,6 +307,9 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
         if maps_freq == "coarsest":  # TODO: Implement this in terms of a TsType object. #1267
             freq = min(TsType(fq) for fq in self.cfg.time_cfg.freqs)
             freq = min(freq, self.cfg.time_cfg.main_freq)
+            self.cfg.modelmaps_opts.maps_freq = str(
+                freq
+            )  # reassign "coarsest" to actual coarsest frequency
         else:
             freq = maps_freq
         return freq
