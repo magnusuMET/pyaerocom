@@ -70,7 +70,7 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
         return all_vars
 
     def _get_obs_vars_to_process(self, obs_name, var_list):
-        ovars = self.cfg.obs_cfg.get(obs_name).get_all_vars()
+        ovars = self.cfg.obs_cfg.get_entry(obs_name).get_all_vars()
         all_vars = sorted(list(set(ovars)))
         if var_list is not None:
             all_vars = [var for var in var_list if var in all_vars]
