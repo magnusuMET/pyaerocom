@@ -312,6 +312,8 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
             freq = min(TsType(fq) for fq in self.cfg.time_cfg.freqs)
             freq = min(freq, self.cfg.time_cfg.main_freq)
             freq = maps_freq
+        else:
+            freq = maps_freq
         return freq
 
     def _get_read_model_freq(self, model_ts_types: list) -> TsType:
