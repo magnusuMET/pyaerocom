@@ -545,7 +545,10 @@ class ExperimentOutput(ProjectOutput):
         Checks if a directory contains any files.
         The contour directory may contains files, but these are not json files (geojson, webp, png)
         """
-        return any(p.is_file() for p in pathlib.Path(directory).rglob("*"))
+        return len(self._get_output_files(directory)) > 0
+
+    def _get_output_files(self, directory):
+        return [p for p in pathlib.Path(directory).rglob("*") if p.is_file()]
 
     def _get_cmap_info(self, var) -> dict[str, str | list[float]]:
         var_ranges_defaults = self.cfg.var_scale_colmap
@@ -780,9 +783,20 @@ class ExperimentOutput(ProjectOutput):
 
     def _create_menu_dict(self) -> dict:
         new = {}
-        files = self._get_json_output_files("map")
+        if self.cfg.processing_opts.only_model_maps:
+            logger.warning(
+                "menu.json may be empty unless running only_model_maps=True after an initial experiment has been created."
+            )
+            files = self._get_output_files(self.out_dirs_json["contour"])
+        else:
+            files = self._get_json_output_files("map")
         for file in files:
-            (obs_name, obs_var, vert_code, mod_name, mod_var, per) = self._info_from_map_file(file)
+            if self.cfg.processing_opts.only_model_maps:
+                pass
+            else:
+                (obs_name, obs_var, vert_code, mod_name, mod_var, per) = self._info_from_map_file(
+                    file
+                )
 
             if self._is_part_of_experiment(obs_name, obs_var, mod_name, mod_var):
                 mcfg = self.cfg.model_cfg.get_entry(mod_name)
