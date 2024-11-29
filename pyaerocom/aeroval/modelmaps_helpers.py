@@ -127,13 +127,13 @@ def plot_overlay_pixel_maps(
         vmax=cmap_bins[-1],
         cmap=cmap,
     )
-
     with io.BytesIO() as buffer:  # use buffer memory
         plt.savefig(
             buffer,
             bbox_inches="tight",
             transparent=True,
             format=format,
+            pad_inches=0,
         )
         buffer.seek(0)
         image = buffer.getvalue()
