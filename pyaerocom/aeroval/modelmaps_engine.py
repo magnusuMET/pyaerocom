@@ -61,7 +61,7 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
 
         self.cfg.modelmaps_opts.maps_freq = (
             self._get_maps_freq()
-        )  # reassign "coarsest" to actual coarsest frequency
+        )  # if needed, reassign "coarsest" to actual coarsest frequency
         return files
 
     def _get_vars_to_process(self, model_name, var_list):
@@ -286,6 +286,7 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                 format=self.cfg.modelmaps_opts.overlay_save_format,
             )
 
+            # TODO: https://github.com/metno/aerovaldb/issues/96
             with self.avdb.lock():
                 self.avdb.put_map_overlay(
                     overlay_plot,
