@@ -327,6 +327,43 @@ class ExperimentOutput(ProjectOutput):
 
         return MapInfo(obs_network, obs_var, vert_code, mod_id, mod_var, time_period)
 
+    def _info_from_contour_dir_file(self, file: pathlib.PosixPath):
+        """
+        Separate map filename into meta info on obs and model content
+
+        Parameters
+        ----------
+        filename : str
+            name of file in "contour" subdirectory of json output directory for
+            this experiment
+
+        Raises
+        ------
+        ValueError
+            if input filename is invalid
+
+        Returns
+        -------
+        str
+            name of model
+        str
+            name of variable
+        str
+            Time period
+        """
+        spl = os.path.basename(file.name).split(file.suffix)[0].split("_")
+
+        if len(spl) != 3:
+            raise ValueError(
+                f"invalid map filename: {file}. Must "
+                f"contain exactly 2 underscores _ to separate "
+                f"obsinfo, vertical, model info, and periods"  # LB: this needs to be checked
+            )
+        mod_name = spl[0]
+        var_name = spl[1]
+        per = spl[2]
+        return (mod_name, var_name, per)
+
     def _results_summary(self) -> dict[str, list[str]]:
         res = [[], [], [], [], [], []]
         files = self._get_json_output_files("map")
@@ -792,7 +829,24 @@ class ExperimentOutput(ProjectOutput):
             files = self._get_json_output_files("map")
         for file in files:
             if self.cfg.processing_opts.only_model_maps:
-                pass
+                (mod_name, var_name, per) = self._info_from_contour_dir_file(file)
+
+                obs_var, mod_var = var_name, var_name
+
+                if mod_name in self.cfg.obs_cfg.keylist():
+                    vert_code = self.cfg.obs_cfg.get_entry(mod_name).obs_vert_type
+                elif mod_name in self.cfg.model_cfg.keylist():
+                    vert_code = None
+                    for o in self.cfg.obs_cfg.keylist():
+                        if var_name in self.cfg.obs_cfg.get_entry(o).obs_vars:
+                            vert_code = self.cfg.obs_cfg.get_entry("TROPOMI").obs_vert_type
+                    if not vert_code:
+                        raise ValueError(
+                            "Failed to infer vert_code in a only_model_maps experiment"
+                        )
+                else:
+                    raise ValueError("Failed to infer vert_code in a only_model_maps experiment")
+
             else:
                 (obs_name, obs_var, vert_code, mod_name, mod_var, per) = self._info_from_map_file(
                     file
