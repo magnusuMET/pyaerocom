@@ -180,7 +180,8 @@ class ColdataToJsonEngine(ProcessingEngine):
             self.avdb.put_regions(regions, self.exp_output.proj_id, self.exp_output.exp_id)
 
         use_country = True if regions_how == "country" else False
-
+        # to_freqs = freqs if not self.cfg.obs_cfg[obs_name].is_bulk else coldata.ts_type
+        # breakpoint()
         data = _init_data_default_frequencies(coldata, freqs)
 
         if annual_stats_constrained:
@@ -369,7 +370,13 @@ class ColdataToJsonEngine(ProcessingEngine):
 
             region = regnames[reg]
             self.exp_output.add_heatmap_timeseries_entry(
-                stats_ts, region, obs_name, var_name_web, vert_code, model_name, model_var
+                stats_ts,
+                region,
+                obs_name,
+                var_name_web,
+                vert_code,
+                model_name,
+                model_var,
             )
 
         logger.info("Processing heatmap data for all regions")

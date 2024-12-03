@@ -113,8 +113,8 @@ class ObsEntry(BaseModel):
     instr_vert_loc: str | None = None
     is_superobs: bool = False
     only_superobs: bool = False
-    is_bulkfraction: bool = False
-    bulk_vars: dict[str, list] = {}
+    is_bulk: bool = False
+    bulk_options: dict[str, dict] = {}
     colocation_layer_limts: tuple[LayerLimits, ...] | None = None
     profile_layer_limits: tuple[LayerLimits, ...] | None = None
     web_interface_name: str | None = None
@@ -184,15 +184,23 @@ class ObsEntry(BaseModel):
                 f"Invalid value for obs_id: {self.obs_id}. Need str, tuple, or dict "
                 f"or specification of ids and variables via obs_compute_post"
             )
-        if self.is_bulkfraction:
+        if self.is_bulk:
             for var in self.obs_vars:
-                if var not in self.bulk_vars:
+                if var not in self.bulk_options:
                     raise KeyError(f"Could not find bulk vars entry for {var}")
 
-                elif len(self.bulk_vars[var]) != 2:
+                elif len(self.bulk_options[var]["vars"]) != 2:
                     raise ValueError(
                         f"(Only) 2 entries must be present for bulk vars to calculate fraction for {var}"
                     )
+                for option in ["vars", "model_exists", "mode", "units"]:
+                    if option not in self.bulk_options[var]:
+                        raise KeyError(f"Option {option} not found in bulk_options")
+                if self.bulk_options[var]["mode"] not in ["fraction", "product"]:
+                    raise ValueError(
+                        f"Mode must be either fraction of product, not {self.bulk_options[var]['mode']}"
+                    )
+
         self.check_add_obs()
         return self
 
@@ -249,7 +257,6 @@ class ObsEntry(BaseModel):
             raise ValueError(f"invalid value for obs_vert_type: {vc}")
         if val not in SUPPORTED_VERT_CODES:
             raise ValueError(
-                f"invalid value for obs_vert_type: {val}. Choose from "
-                f"{SUPPORTED_VERT_CODES}."
+                f"invalid value for obs_vert_type: {val}. Choose from " f"{SUPPORTED_VERT_CODES}."
             )
         return val

@@ -66,7 +66,7 @@ class ExperimentProcessor(ProcessingEngine, HasColocator):
                 engine = ColdataToJsonEngine(self.cfg)
                 engine.run(files_to_convert)
 
-        elif ocfg.is_bulkfraction:
+        elif ocfg.is_bulk:
             engine = BulkFractionEngine(self.cfg)
             engine.run(var_list, model_name, obs_name)
 
@@ -159,9 +159,7 @@ class ExperimentProcessor(ProcessingEngine, HasColocator):
             if isinstance(
                 self.cfg.modelmaps_opts.plot_types, dict
             ):  # There may be additional obs networks to compute "model" maps for
-                model_list = list(
-                    set(model_list) and set(self.cfg.modelmaps_opts.plot_types)
-                )
+                model_list = list(set(model_list) and set(self.cfg.modelmaps_opts.plot_types))
 
             engine.run(model_list=model_list, var_list=var_list)
 
