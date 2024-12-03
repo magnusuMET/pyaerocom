@@ -29,7 +29,7 @@ from pyaerocom.exceptions import (
 
 logger = logging.getLogger(__name__)
 
-MODELREADERS_USE_MAP_FREQ = ["ReadMscwCtm"]
+MODELREADERS_USE_MAP_FREQ = ["ReadMscwCtm", "ReadCAMS2_83"]
 
 
 class ModelMapsEngine(ProcessingEngine, DataImporter):
@@ -359,7 +359,9 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                 logger.info(f"Found coarsest maps_freq that is available as model data: {freq}")
                 return freq
 
-        raise ValueError("Could not find any TS type to read maps")
+        freq = min(TsType(fq) for fq in model_ts_types)
+        logger.info(f"Found coarsest freq available as model data: {freq}")
+        return freq
 
     def _read_model_data(self, model_name: str, var: str) -> GriddedData:
         """
