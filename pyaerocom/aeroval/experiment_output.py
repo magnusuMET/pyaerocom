@@ -360,10 +360,10 @@ class ExperimentOutput(ProjectOutput):
                 f"contain exactly 2 underscores _ to separate "
                 f"obsinfo, vertical, model info, and periods"  # LB: this needs to be checked
             )
-        mod_name = spl[0]
+        name = spl[0]
         var_name = spl[1]
         per = spl[2]
-        return (mod_name, var_name, per)
+        return (name, var_name, per)
 
     def _results_summary(self) -> dict[str, list[str]]:
         res = [[], [], [], [], [], []]
@@ -822,14 +822,14 @@ class ExperimentOutput(ProjectOutput):
     def _create_menu_dict(self) -> dict:
         new = {}
         if self.cfg.processing_opts.only_model_maps:
-            logger.warning(
-                "menu.json may be empty unless running only_model_maps=True after an initial experiment has been created."
-            )
             files = self._get_output_files(self.out_dirs_json["contour"])
-
-            all_obs = self.cfg.obs_cfg.keylist()
-            all_models = self.cfg.model_cfg.keylist()
-            all_combinations = list(itertools.product(all_obs, all_models))
+            all_combinations = list(
+                itertools.product(
+                    self.cfg.obs_cfg.keylist(),
+                    self.cfg.model_cfg.keylist(),
+                    self.cfg.obs_cfg.get_all_vars(),
+                )
+            )
         else:
             files = self._get_json_output_files("map")
         for file in files:
@@ -841,7 +841,7 @@ class ExperimentOutput(ProjectOutput):
                 # if only_model_maps = True, then we do not do colocation, and so the maps dir is empty,
                 # however menu.json is still needed
                 if not all_combinations:
-                    continue
+                    break
 
                 (mod_name, var_name, per) = self._info_from_contour_dir_file(file)
 
@@ -851,7 +851,12 @@ class ExperimentOutput(ProjectOutput):
                     vert_code = self.cfg.obs_cfg.get_entry(mod_name).obs_vert_type
                     obs_name = mod_name
                     first_with_obs_name = next(
-                        (item for item in all_combinations if item[0] == obs_name), None
+                        (
+                            item
+                            for item in all_combinations
+                            if item[0] == obs_name and item[-1] == var_name
+                        ),
+                        None,
                     )
                     if not first_with_obs_name:  # should already be taken care of in new
                         continue
@@ -867,7 +872,12 @@ class ExperimentOutput(ProjectOutput):
                             "Failed to infer vert_code in a only_model_maps experiment"
                         )
                     first_with_mod_name = next(
-                        (item for item in all_combinations if item[1] == mod_name), None
+                        (
+                            item
+                            for item in all_combinations
+                            if item[1] == mod_name and item[-1] == var_name
+                        ),
+                        None,
                     )
                     if not first_with_mod_name:  # should already be taken care of in new
                         continue
@@ -880,7 +890,6 @@ class ExperimentOutput(ProjectOutput):
                 (obs_name, obs_var, vert_code, mod_name, mod_var, per) = self._info_from_map_file(
                     file
                 )
-
             if self._is_part_of_experiment(obs_name, obs_var, mod_name, mod_var):
                 mcfg = self.cfg.model_cfg.get_entry(mod_name)
                 var = mcfg.get_varname_web(mod_var, obs_var)
