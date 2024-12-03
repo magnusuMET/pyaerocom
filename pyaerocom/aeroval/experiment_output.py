@@ -1,4 +1,5 @@
 import glob
+import itertools
 import logging
 import os
 import pathlib
@@ -825,25 +826,53 @@ class ExperimentOutput(ProjectOutput):
                 "menu.json may be empty unless running only_model_maps=True after an initial experiment has been created."
             )
             files = self._get_output_files(self.out_dirs_json["contour"])
+
+            all_obs = self.cfg.obs_cfg.keylist()
+            all_models = self.cfg.model_cfg.keylist()
+            all_combinations = list(itertools.product(all_obs, all_models))
         else:
             files = self._get_json_output_files("map")
         for file in files:
             if self.cfg.processing_opts.only_model_maps:
+                # Hack to build menu.json
+                # Key issue we need to get around is that the ExperimentOutput class
+                # expects that at this point in the processing, all information it needs
+                # to describe an experiment has been written to disc, traditionally in the map directory
+                # if only_model_maps = True, then we do not do colocation, and so the maps dir is empty,
+                # however menu.json is still needed
+                if not all_combinations:
+                    continue
+
                 (mod_name, var_name, per) = self._info_from_contour_dir_file(file)
 
                 obs_var, mod_var = var_name, var_name
 
                 if mod_name in self.cfg.obs_cfg.keylist():
                     vert_code = self.cfg.obs_cfg.get_entry(mod_name).obs_vert_type
+                    obs_name = mod_name
+                    first_with_obs_name = next(
+                        (item for item in all_combinations if item[0] == obs_name), None
+                    )
+                    if not first_with_obs_name:  # should already be taken care of in new
+                        continue
+                    mod_name = first_with_obs_name[1]
+                    all_combinations.remove(first_with_obs_name)
                 elif mod_name in self.cfg.model_cfg.keylist():
                     vert_code = None
                     for o in self.cfg.obs_cfg.keylist():
                         if var_name in self.cfg.obs_cfg.get_entry(o).obs_vars:
-                            vert_code = self.cfg.obs_cfg.get_entry("TROPOMI").obs_vert_type
+                            vert_code = self.cfg.obs_cfg.get_entry(o).obs_vert_type
                     if not vert_code:
                         raise ValueError(
                             "Failed to infer vert_code in a only_model_maps experiment"
                         )
+                    first_with_mod_name = next(
+                        (item for item in all_combinations if item[1] == mod_name), None
+                    )
+                    if not first_with_mod_name:  # should already be taken care of in new
+                        continue
+                    obs_name = first_with_mod_name[0]
+                    all_combinations.remove(first_with_mod_name)
                 else:
                     raise ValueError("Failed to infer vert_code in a only_model_maps experiment")
 
