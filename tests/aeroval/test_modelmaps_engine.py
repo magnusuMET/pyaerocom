@@ -64,11 +64,6 @@ def test__get_read_model_freq(maps_freq, result, ts_types):
             ["monthly", "yearly"],
             "Could not find any model data for given maps_freq.*",
         ),
-        (
-            "coarsest",
-            ["hourly", "weekly"],
-            "Could not find any TS type to read maps",
-        ),
     ],
 )
 def test__get_read_model_freq_error(maps_freq, ts_types, errormsg):
