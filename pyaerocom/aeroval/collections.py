@@ -87,6 +87,10 @@ class BaseCollection(abc.ABC):
         KeyError
             if no matches can be found
         """
+        # Special case where the model cfg is empty, used for obs-only
+        if self._entries.keys() == []:
+            return []
+
         if name_or_pattern is None:
             name_or_pattern = "*"
 
@@ -94,6 +98,9 @@ class BaseCollection(abc.ABC):
         for key in self._entries.keys():
             if fnmatch(key, name_or_pattern) and key not in matches:
                 matches.append(key)
+
+        if len(matches) == 0:
+            raise KeyError(f"No matches could be found that match input {name_or_pattern}")
         return matches
 
     @property
