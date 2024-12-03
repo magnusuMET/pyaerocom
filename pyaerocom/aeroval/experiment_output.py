@@ -358,7 +358,7 @@ class ExperimentOutput(ProjectOutput):
             raise ValueError(
                 f"invalid map filename: {file}. Must "
                 f"contain exactly 2 underscores _ to separate "
-                f"obsinfo, vertical, model info, and periods"  # LB: this needs to be checked
+                f"obsinfo, vertical, model info, and periods"
             )
         name = spl[0]
         var_name = spl[1]
