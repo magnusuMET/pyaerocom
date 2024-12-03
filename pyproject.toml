@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "pyaerocom"
-version = "0.25.0.dev0"
+version = "0.26.0.dev0"
 authors = [{ name = "MET Norway" }]
 description = "pyaerocom model evaluation software"
 classifiers = [
@@ -111,7 +111,7 @@ filterwarnings = [
     # Ignore self-deprecation warnings related to plotting
     'ignore:matplotlib based plotting is no longer directly supported. This (function|class) may be removed in future versions\.:DeprecationWarning:(pyaerocom|tests):',
     # and not on this list
-    "ignore:Using DEFAULT_SPHERICAL_EARTH_RADIUS:UserWarning:iris.*:",  # Issue #1394
+    "ignore:Using DEFAULT_SPHERICAL_EARTH_RADIUS:UserWarning:iris.*:", # Issue #1394
 ]
 
 [tool.coverage.run]
