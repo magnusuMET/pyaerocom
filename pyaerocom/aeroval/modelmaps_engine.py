@@ -62,6 +62,7 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
         self.cfg.modelmaps_opts.maps_freq = (
             self._get_maps_freq()
         )  # if needed, reassign "coarsest" to actual coarsest frequency
+
         return files
 
     def _get_vars_to_process(self, model_name, var_list):
@@ -139,6 +140,7 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                 if self.raise_exceptions:
                     raise
                 logger.warning(f"Failed to process maps for {model_name} {var} data. Reason: {e}.")
+
         return files
 
     def _check_dimensions(self, data: GriddedData) -> "GriddedData":
@@ -266,6 +268,10 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
         data.check_unit()
 
         tst = _jsdate_list(data)
+
+        if self.cfg.processing_opts.only_model_maps:
+            self._check_ts_for_only_model_maps(model_name, var, tst)
+
         data = data.to_xarray()
         files = []
         for i, date in enumerate(tst):
@@ -440,3 +446,74 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
             data.remove_outliers(low, high, inplace=True)
 
         return data
+
+    def _check_ts_for_only_model_maps(self, name: str, var: str, dates: list[int]):
+        maps_freq = str(self._get_maps_freq())
+        if name in self.cfg.obs_cfg.keylist():
+            with self.avdb.lock():
+                timeseries = self.avdb.get_timeseries(
+                    self.cfg.proj_info.proj_id,
+                    self.cfg.exp_info.exp_id,
+                    "ALL",
+                    name,
+                    var,
+                    self.cfg.obs_cfg.get_entry(name).obs_vert_type,
+                    default={},
+                )
+                # loop thourgh the models
+                # check to see if contained in timeseries
+                # if not, add it with dates and dummy_data
+                # otherwise skip
+                for model_name in self.cfg.model_cfg.keylist():
+                    if model_name in timeseries:
+                        continue
+                    timeseries[model_name] = {
+                        maps_freq + "_date": dates,
+                        maps_freq + "_obs": [None] * len(dates),
+                        maps_freq + "_mod": [None] * len(dates),
+                    }
+
+                self.avdb.put_timeseries(
+                    timeseries,
+                    self.cfg.proj_info.proj_id,
+                    self.cfg.exp_info.exp_id,
+                    "ALL",
+                    name,
+                    var,
+                    self.cfg.obs_cfg.get_entry(name).obs_vert_type,
+                )
+        if name in self.cfg.model_cfg.keylist():
+            # loop over obs networks
+            # get corresponding time series
+            # check if name is contained within this time series
+            # if not, add dummy dates and and maybe modelv alues (or NaNs)
+            # write updated timeseries to disc
+            # if name is already in timeseries, skip
+            with self.avdb.lock():
+                for obs_name in self.cfg.obs_cfg.keylist():
+                    timeseries = self.avdb.get_timeseries(
+                        self.cfg.proj_info.proj_id,
+                        self.cfg.exp_info.exp_id,
+                        "ALL",
+                        obs_name,
+                        var,
+                        self.cfg.obs_cfg.get_entry(obs_name).obs_vert_type,
+                        default={},
+                    )
+                    if name in timeseries:
+                        continue
+                    timeseries[name] = {
+                        maps_freq + "_date": dates,
+                        maps_freq + "_obs": [None] * len(dates),
+                        maps_freq + "_mod": [None] * len(dates),
+                    }
+
+                    self.avdb.put_timeseries(
+                        timeseries,
+                        self.cfg.proj_info.proj_id,
+                        self.cfg.exp_info.exp_id,
+                        "ALL",
+                        obs_name,
+                        var,
+                        self.cfg.obs_cfg.get_entry(obs_name).obs_vert_type,
+                    )
