@@ -447,7 +447,9 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
 
         return data
 
-    def _check_ts_for_only_model_maps(self, name: str, var: str, dates: list[int]):
+    def _check_ts_for_only_model_maps(
+        self, name: str, var: str, dates: list[int]
+    ):  # pragma: no cover
         maps_freq = str(self._get_maps_freq())
         if name in self.cfg.obs_cfg.keylist():
             with self.avdb.lock():
