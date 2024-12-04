@@ -110,11 +110,12 @@ def plot_overlay_pixel_maps(
 ):  # pragma: no cover
     plt.close("all")
     matplotlib.use("Agg")
+    proj = ccrs.epsg(3857)
 
     fig, axis = plt.subplots(
         1,
         1,
-        subplot_kw=dict(projection=ccrs.Mercator()),
+        subplot_kw=dict(projection=proj),
         figsize=(8, 8),
     )
 
@@ -127,6 +128,7 @@ def plot_overlay_pixel_maps(
         vmax=cmap_bins[-1],
         cmap=cmap,
     )
+
     with io.BytesIO() as buffer:  # use buffer memory
         plt.savefig(
             buffer,
