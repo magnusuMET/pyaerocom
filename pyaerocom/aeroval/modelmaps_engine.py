@@ -460,10 +460,6 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                     self.cfg.obs_cfg.get_entry(name).obs_vert_type,
                     default={},
                 )
-                # loop thourgh the models
-                # check to see if contained in timeseries
-                # if not, add it with dates and dummy_data
-                # otherwise skip
                 for model_name in self.cfg.model_cfg.keylist():
                     if model_name in timeseries:
                         continue
@@ -483,12 +479,6 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                     self.cfg.obs_cfg.get_entry(name).obs_vert_type,
                 )
         if name in self.cfg.model_cfg.keylist():
-            # loop over obs networks
-            # get corresponding time series
-            # check if name is contained within this time series
-            # if not, add dummy dates and and maybe modelv alues (or NaNs)
-            # write updated timeseries to disc
-            # if name is already in timeseries, skip
             with self.avdb.lock():
                 for obs_name in self.cfg.obs_cfg.keylist():
                     timeseries = self.avdb.get_timeseries(
