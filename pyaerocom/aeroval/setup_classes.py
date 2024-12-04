@@ -23,6 +23,7 @@ from pydantic import (
     ConfigDict,
     Field,
     PositiveInt,
+    NonNegativeInt,
     computed_field,
     field_serializer,
     field_validator,
@@ -224,7 +225,7 @@ class StatisticsSetup(BaseModel, extra="allow"):
     avg_over_trends: bool = (
         False  # Adds calculation of avg over trends of time series of stations in region
     )
-    obs_min_yrs: PositiveInt = 0  # Removes stations with less than this number of years of valid data (a year with data points in all four seasons) Should in most cases be the same as stats_min_yrs
+    obs_min_yrs: NonNegativeInt = 0  # Removes stations with less than this number of years of valid data (a year with data points in all four seasons) Should in most cases be the same as stats_min_yrs
     stats_min_yrs: PositiveInt = obs_min_yrs  # Calculates trends if number of valid years are equal or more than this. Should in most cases be the same as obs_min_yrs
     sequential_yrs: bool = False  # Whether or not the min_yrs should be sequential
 
