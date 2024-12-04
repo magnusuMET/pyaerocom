@@ -366,14 +366,24 @@ class ExperimentOutput(ProjectOutput):
         return (name, var_name, per)
 
     def _results_summary(self) -> dict[str, list[str]]:
-        res = [[], [], [], [], [], []]
-        files = self._get_json_output_files("map")
-        for file in files:
-            map_info = self._info_from_map_file(file)
-            for i, entry in enumerate(map_info):
-                res[i].append(entry)
+        if self.cfg.processing_opts.only_model_maps:
+            infos = ["name", "ovar", "per"]
+            res = [[], [], []]
+            files = self._get_output_files(self.out_dirs_json["contour"])
+            for file in files:
+                file_info = self._info_from_contour_dir_file(file)
+                for i, entry in enumerate(file_info):
+                    res[i].append(entry)
+        else:
+            infos = ["obs", "ovar", "vc", "mod", "mvar", "per"]
+            res = [[], [], [], [], [], []]
+            files = self._get_json_output_files("map")
+            for file in files:
+                map_info = self._info_from_map_file(file)
+                for i, entry in enumerate(map_info):
+                    res[i].append(entry)
         output = {}
-        for i, name in enumerate(["obs", "ovar", "vc", "mod", "mvar", "per"]):
+        for i, name in enumerate(infos):
             output[name] = list(set(res[i]))
         return output
 
@@ -611,7 +621,7 @@ class ExperimentOutput(ProjectOutput):
             ranges = self.avdb.get_ranges(self.proj_id, self.exp_id, default={})
 
             avail = self._results_summary()
-            all_vars = list(set(avail["ovar"] + avail["mvar"]))
+            all_vars = list(set(avail.get("ovar", []) + avail.get("mvar", [])))
             for var in all_vars:
                 if var not in ranges or ranges[var]["scale"] == []:
                     ranges[var] = self._get_cmap_info(var)
