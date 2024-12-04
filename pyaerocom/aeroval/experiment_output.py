@@ -237,6 +237,16 @@ class ExperimentOutput(ProjectOutput):
         with self.avdb.lock():
             menu = self.avdb.get_menu(self.proj_id, self.exp_id, default={})
             all_regions = self.avdb.get_regions(self.proj_id, self.exp_id, default={})
+            if not all_regions and self.cfg.processing_opts.only_model_maps:
+                all_regions = {
+                    "ALL": {
+                        "minLat": self.cfg.modelmaps_opts.boundaries.south,
+                        "maxLat": self.cfg.modelmaps_opts.boundaries.north,
+                        "minLon": self.cfg.modelmaps_opts.boundaries.west,
+                        "maxLon": self.cfg.modelmaps_opts.boundaries.east,
+                    }
+                }
+                self.avdb.put_regions(all_regions, self.proj_id, self.exp_id)
             for uri in self.avdb.list_glob_stats(
                 self.proj_id, self.exp_id, access_type=aerovaldb.AccessType.URI
             ):
