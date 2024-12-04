@@ -29,7 +29,7 @@ from pyaerocom.exceptions import (
 
 logger = logging.getLogger(__name__)
 
-MODELREADERS_USE_MAP_FREQ = ["ReadMscwCtm", "ReadCAMS2_83"]
+MODELREADERS_USE_MAP_FREQ = ["ReadMscwCtm"]  # , "ReadCAMS2_83"]
 
 
 class ModelMapsEngine(ProcessingEngine, DataImporter):
@@ -318,7 +318,7 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
 
         Returns
         -------
-        TSType
+        TsType
         """
         maps_freq = TsType(self.cfg.modelmaps_opts.maps_freq)
         if maps_freq == "coarsest":  # TODO: Implement this in terms of a TsType object. #1267
@@ -433,7 +433,9 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
             if model_ts_type_read:
                 ts_type_read = model_ts_type_read
             else:
-                ts_type_read = None  # self.cfg.time_cfg.main_freq
+                ts_type_read = (
+                    self.cfg.colocation_opts.ts_type
+                )  # emulates the old way closer than None
 
         data = reader.read_var(
             var,
