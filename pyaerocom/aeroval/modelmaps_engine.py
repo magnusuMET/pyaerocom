@@ -124,6 +124,7 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                     _files = self._process_contour_map_var(
                         model_name, var, self.reanalyse_existing
                     )
+
                     if isinstance(_files, str):
                         _files = [_files]
                     files.extend(_files)
@@ -132,6 +133,8 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                     _files = self._process_overlay_map_var(
                         model_name, var, self.reanalyse_existing
                     )
+                    if isinstance(_files, str):
+                        _files = [_files]
                     files.extend(_files)
 
             except ModelVarNotAvailable as ex:
