@@ -22,6 +22,13 @@ def test__run(caplog):
     assert "no data for model TM5-AP3-CTRL, skipping" in caplog.text
 
 
+def test__run_working(caplog):
+    stp = EvalSetup(**CFG)
+    engine = ModelMapsEngine(stp)
+    files = engine.run(model_list=["TM5-AP3-CTRL"], var_list=["od550aer"])
+    assert "PATH_TO_AEROVAL_OUT/data/test/exp1/contour/od550aer_TM5-AP3-CTRL.geojson" in files
+
+
 @pytest.mark.parametrize(
     "maps_freq, result",
     [("monthly", "monthly"), ("yearly", "yearly"), ("coarsest", "yearly")],

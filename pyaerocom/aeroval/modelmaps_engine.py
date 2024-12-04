@@ -124,7 +124,9 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                     _files = self._process_contour_map_var(
                         model_name, var, self.reanalyse_existing
                     )
-                    files.append(_files)
+                    if isinstance(_files, str):
+                        _files = [_files]
+                    files.extend(_files)
                 if self.cfg.modelmaps_opts.plot_types == {OVERLAY} or make_overlay:
                     # create overlay (pixel) plots
                     _files = self._process_overlay_map_var(
@@ -424,7 +426,11 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
             ts_types = reader.ts_types
             ts_type_read = str(self._get_read_model_freq(ts_types))
         else:
-            ts_type_read = self.cfg.time_cfg.main_freq
+            model_ts_type_read = self.cfg.model_cfg.get_entry(model_name).model_ts_type_read
+            if model_ts_type_read:
+                ts_type_read = model_ts_type_read
+            else:
+                ts_type_read = None  # self.cfg.time_cfg.main_freq
 
         data = reader.read_var(
             var,
