@@ -856,11 +856,11 @@ class ExperimentOutput(ProjectOutput):
         for file in files:
             if self.cfg.processing_opts.only_model_maps:
                 # Hack to build menu.json
-                # Key issue we need to get around is that the ExperimentOutput class
-                # expects that at this point in the processing, all information it needs
-                # to describe an experiment has been written to disc, traditionally in the map directory
-                # if only_model_maps = True, then we do not do colocation, and so the maps dir is empty,
-                # however menu.json is still needed
+                # The key issue we need to get around is that the ExperimentOutput class
+                # expects that at this point of the processing, all information it needs
+                # to describe an experiment has been written to disc, traditionally in the map directory.
+                # If only_model_maps = True, then we do not do colocation, and so the map dir is empty,
+                # however menu.json is still needed.
                 if not all_combinations:
                     break
 
@@ -890,7 +890,7 @@ class ExperimentOutput(ProjectOutput):
                             vert_code = self.cfg.obs_cfg.get_entry(o).obs_vert_type
                     if not vert_code:
                         raise ValueError(
-                            "Failed to infer vert_code in a only_model_maps experiment"
+                            "Failed to infer vert_code in an only_model_maps experiment"
                         )
                     first_with_mod_name = next(
                         (
@@ -905,7 +905,7 @@ class ExperimentOutput(ProjectOutput):
                     obs_name = first_with_mod_name[0]
                     all_combinations.remove(first_with_mod_name)
                 else:
-                    raise ValueError("Failed to infer vert_code in a only_model_maps experiment")
+                    raise ValueError("Failed to infer vert_code in an only_model_maps experiment")
 
             else:
                 (obs_name, obs_var, vert_code, mod_name, mod_var, per) = self._info_from_map_file(
