@@ -1,7 +1,9 @@
 import logging
 import os
+import xarray as xr
 
-from pyaerocom import GriddedData, TsType, const
+
+from pyaerocom import GriddedData, TsType, const, __version__
 from pyaerocom.aeroval._processing_base import DataImporter, ProcessingEngine
 from pyaerocom.aeroval.modelmaps_helpers import (
     calc_contour_json,
@@ -10,6 +12,7 @@ from pyaerocom.aeroval.modelmaps_helpers import (
     CONTOUR,
     OVERLAY,
 )
+from pyaerocom.aeroval.json_utils import round_floats
 from pyaerocom.colocation.colocator import Colocator
 
 from pyaerocom.aeroval.varinfo_web import VarinfoWeb
@@ -58,6 +61,11 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                 logger.warning(f"no data for model {model}, skipping")
                 continue
             all_files.extend(files)
+
+        self.cfg.modelmaps_opts.maps_freq = (
+            self._get_maps_freq()
+        )  # if needed, reassign "coarsest" to actual coarsest frequency
+
         return files
 
     def _get_vars_to_process(self, model_name, var_list):
@@ -70,7 +78,7 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
         return all_vars
 
     def _get_obs_vars_to_process(self, obs_name, var_list):
-        ovars = self.cfg.obs_cfg.get(obs_name).get_all_vars()
+        ovars = self.cfg.obs_cfg.get_entry(obs_name).get_all_vars()
         all_vars = sorted(list(set(ovars)))
         if var_list is not None:
             all_vars = [var for var in var_list if var in all_vars]
@@ -116,12 +124,13 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                     _files = self._process_contour_map_var(
                         model_name, var, self.reanalyse_existing
                     )
-                    files.extend(_files)
+                    files.append(_files)
                 if self.cfg.modelmaps_opts.plot_types == {OVERLAY} or make_overlay:
                     # create overlay (pixel) plots
                     _files = self._process_overlay_map_var(
                         model_name, var, self.reanalyse_existing
                     )
+                    files.extend(_files)
 
             except ModelVarNotAvailable as ex:
                 logger.warning(f"{ex}")
@@ -134,6 +143,7 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                 if self.raise_exceptions:
                     raise
                 logger.warning(f"Failed to process maps for {model_name} {var} data. Reason: {e}.")
+
         return files
 
     def _check_dimensions(self, data: GriddedData) -> "GriddedData":
@@ -261,7 +271,11 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
         data.check_unit()
 
         tst = _jsdate_list(data)
-        data = data.to_xarray()
+        data = data.to_xarray().load()
+        files = []
+
+        if self.cfg.processing_opts.only_model_maps:
+            self._check_ts_for_only_model_maps(model_name, var, tst, data)
         for i, date in enumerate(tst):
             outname = f"{model_name}_{var}_{date}"
 
@@ -289,6 +303,8 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                     var,
                     date,
                 )
+            files.append(fp_overlay + "." + self.cfg.modelmaps_opts.overlay_save_format)
+        return files
 
     def _get_maps_freq(self) -> TsType:
         """
@@ -309,7 +325,7 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
 
     def _get_read_model_freq(self, model_ts_types: list) -> TsType:
         """
-        Tries to find the best TS type to read. Checks for available ts types with the following priority
+        Tries to find the best TsType to read. Checks for available ts types with the following priority
 
         1. If the freq from _get_maps_freq is available
         2. If maps_freq is explicitly given, and is available
@@ -431,3 +447,101 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
             data.remove_outliers(low, high, inplace=True)
 
         return data
+
+    def _check_ts_for_only_model_maps(
+        self, name: str, var: str, dates: list[int], data: xr.Dataset
+    ):  # pragma: no cover
+        maps_freq = str(self._get_maps_freq())
+        if name in self.cfg.obs_cfg.keylist():
+            with self.avdb.lock():
+                timeseries = self.avdb.get_timeseries(
+                    self.cfg.proj_info.proj_id,
+                    self.cfg.exp_info.exp_id,
+                    "ALL",
+                    name,
+                    var,
+                    self.cfg.obs_cfg.get_entry(name).obs_vert_type,
+                    default={},
+                )
+
+                for model_name in self.cfg.model_cfg.keylist():
+                    if (
+                        model_name in timeseries
+                        and timeseries[model_name].get(maps_freq + "_mod", False)
+                        and timeseries[model_name].get(maps_freq + "_obs", False)
+                    ):
+                        continue
+
+                    timeseries.setdefault(model_name, {})
+                    timeseries[model_name].setdefault(maps_freq + "_date", dates)
+                    timeseries[model_name].setdefault(
+                        maps_freq + "_obs",
+                        list(round_floats(data.mean(dim=("latitude", "longitude")).values)),
+                    )
+
+                    timeseries[model_name].setdefault("obs_var", var)
+                    timeseries[model_name].setdefault("obs_unit", data.units)
+                    timeseries[model_name].setdefault("obs_name", name)
+                    timeseries[model_name].setdefault(
+                        "var_name_web", self.cfg.obs_cfg.get_web_interface_name(name)
+                    )
+                    timeseries[model_name].setdefault(
+                        "vert_code", self.cfg.obs_cfg.get_entry(name).obs_vert_type
+                    )
+                    timeseries[model_name].setdefault("obs_freq_src", maps_freq)
+
+                self.avdb.put_timeseries(
+                    timeseries,
+                    self.cfg.proj_info.proj_id,
+                    self.cfg.exp_info.exp_id,
+                    "ALL",
+                    name,
+                    var,
+                    self.cfg.obs_cfg.get_entry(name).obs_vert_type,
+                )
+        elif name in self.cfg.model_cfg.keylist():
+            with self.avdb.lock():
+                for obs_name in self.cfg.obs_cfg.keylist():
+                    timeseries = self.avdb.get_timeseries(
+                        self.cfg.proj_info.proj_id,
+                        self.cfg.exp_info.exp_id,
+                        "ALL",
+                        obs_name,
+                        var,
+                        self.cfg.obs_cfg.get_entry(obs_name).obs_vert_type,
+                        default={},
+                    )
+
+                    if (
+                        name in timeseries
+                        and timeseries[name].get(maps_freq + "_mod", False) is not None
+                        and timeseries[name].get(maps_freq + "_obs", False) is not None
+                    ):
+                        continue
+
+                    timeseries.setdefault(name, {})
+                    timeseries[name].setdefault(maps_freq + "_date", dates)
+                    timeseries[name].setdefault(
+                        maps_freq + "_mod",
+                        list(round_floats(data.mean(dim=("latitude", "longitude")).values)),
+                    )
+                    timeseries[name].setdefault("station_name", "ALL")
+                    timeseries[name].setdefault("pyaerocom_version", __version__)
+                    timeseries[name].setdefault("mod_var", var)
+                    timeseries[name].setdefault("mod_unit", data.units)
+                    timeseries[name].setdefault("model_name", name)
+                    timeseries[name].setdefault("mod_freq_src", maps_freq)
+
+                    self.avdb.put_timeseries(
+                        timeseries,
+                        self.cfg.proj_info.proj_id,
+                        self.cfg.exp_info.exp_id,
+                        "ALL",
+                        obs_name,
+                        var,
+                        self.cfg.obs_cfg.get_entry(obs_name).obs_vert_type,
+                    )
+        else:
+            raise ValueError(
+                f"{name=} not is not in either {self.cfg.obs_cfg.keylist()=} nor {self.cfg.model_cfg.keylist()=}"
+            )
