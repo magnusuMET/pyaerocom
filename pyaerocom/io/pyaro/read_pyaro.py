@@ -12,6 +12,7 @@ from pyaro.timeseries import Data, Reader, Station
 from pyaro.timeseries.Wrappers import VariableNameChangingReader
 
 from pyaerocom.io.pyaro.pyaro_config import PyaroConfig
+from pyaerocom.io.pyaro.postprocess import PostProcessingReader
 from pyaerocom.io.readungriddedbase import ReadUngriddedBase
 from pyaerocom.tstype import TsType
 from pyaerocom.ungriddeddata import UngriddedData
@@ -111,23 +112,23 @@ class PyaroToUngriddedData:
         else:
             kwargs = {}
 
-        if self.config.name_map is None:
-            return open_timeseries(
-                reader_id,
-                self.config.filename_or_obj_or_url,
-                filters=self.config.filters,
-                **kwargs,
-            )
-        else:
-            return VariableNameChangingReader(
-                open_timeseries(
-                    reader_id,
-                    self.config.filename_or_obj_or_url,
-                    filters=self.config.filters,
-                    **kwargs,
-                ),
+        reader = open_timeseries(
+            reader_id,
+            self.config.filename_or_obj_or_url,
+            filters=self.config.filters,
+            **kwargs,
+        )
+        if self.config.name_map is not None:
+            reader = VariableNameChangingReader(
+                reader,
                 self.config.name_map,
             )
+        if self.config.post_processing is not None:
+            reader = PostProcessingReader(
+                reader,
+                self.config.post_processing,
+            )
+        return reader
 
     def _convert_to_ungriddeddata(self, pyaro_data: dict[str, Data]) -> UngriddedData:
         total_size = sum(len(var) for var in pyaro_data.values())

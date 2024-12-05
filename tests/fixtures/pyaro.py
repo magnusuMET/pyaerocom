@@ -24,7 +24,7 @@ def make_csv_test_file(tmp_path: Path) -> Path:
     stations = ["NO0002", "GB0881"]
     countries = ["NO", "GB"]
     coords = [(58, 8), (60, -1)]
-    species = ["NOx", "SOx", "AOD"]
+    species = ["NOx", "SOx", "AOD", "NO"]
     area_type = ["Rural", "Urban"]
 
     with open(file, "w") as f:
@@ -34,14 +34,15 @@ def make_csv_test_file(tmp_path: Path) -> Path:
                     delta_t = ["1h", "3D", "2D", "2h"][
                         j % 4
                     ]  # Rotates over the freqs in a deterministic fashion
+                    unit = "Gg" if s != "NO" else "ng m-3"
                     f.write(
-                        f"{s}, {station}, {coords[i][1]}, {coords[i][0]}, {np.random.normal(10, 5)}, Gg, {date}, {date+pd.Timedelta(delta_t)},{countries[i]},{area_type[i]} \n"
+                        f"{s}, {station}, {coords[i][1]}, {coords[i][0]}, {np.random.normal(10, 5)}, {unit}, {date}, {date+pd.Timedelta(delta_t)},{countries[i]},{area_type[i]} \n"
                     )
 
     return file
 
 
-def testconfig(tmp_path: Path) -> PyaroConfig:
+def testconfig(tmp_path: Path) -> tuple[PyaroConfig, PyaroConfig]:
     reader_id = "csv_timeseries"
 
     config1 = PyaroConfig(

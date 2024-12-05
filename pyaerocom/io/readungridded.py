@@ -832,7 +832,7 @@ class ReadUngridded:
                 return svar
         raise ValueError()
 
-    def get_vars_supported(self, obs_id, vars_desired):  # , config: Optional[PyaroConfig] = None):
+    def get_vars_supported(self, obs_id: str, vars_desired: list[str]):
         """
         Filter input list of variables by supported ones for a certain data ID
 
