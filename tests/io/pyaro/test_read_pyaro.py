@@ -98,9 +98,9 @@ def test_postprocessing(pyaro_test_data_file):
         name_map={
             "NO": "concno",
         },
-        post_processing={
-            "concNno": "concNno_from_concno",
-        },
+        post_processing=[
+            "concNno_from_concno",
+        ],
         filters=dict(),
     )
     reader = ReadPyaro(config)

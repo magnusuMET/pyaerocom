@@ -13,6 +13,13 @@ class VariableScaling:
     IN_UNIT: str
     OUT_UNIT: str
     SCALING_FACTOR: float
+    OUT_VARNAME: str
+
+    def required_input_variables(self) -> list[str]:
+        return [self.REQ_VAR]
+
+    def out_varname(self) -> str:
+        return self.OUT_VARNAME
 
 
 M_N = 14.006
@@ -24,12 +31,14 @@ TRANSFORMATIONS = {
         IN_UNIT="ug m-3",
         OUT_UNIT="ug N m-3",
         SCALING_FACTOR=M_N / (M_N + M_O),
+        OUT_VARNAME="concNno",
     ),
     "concNno2_from_concno2": VariableScaling(
         REQ_VAR="concno2",
         IN_UNIT="ug m-3",
         OUT_UNIT="ug N m-3",
         SCALING_FACTOR=M_N / (M_N + 2 * M_O),
+        OUT_VARNAME="concNno2",
     ),
 }
 
@@ -99,21 +108,31 @@ class PostProcessingReader(Reader):
     def __init__(
         self,
         reader: Reader,
-        compute_vars: dict[str, str] | None = None,
+        compute_vars: list[str] | None = None,
     ):
         self.reader = reader
 
-        if compute_vars is None:
-            self.compute_vars = dict()
-        else:
-            self.compute_vars = compute_vars
+        self.compute_vars = dict()
+        if compute_vars is not None:
+            known_variables = reader.variables()
+            for compute_var in compute_vars:
+                transform = TRANSFORMATIONS.get(compute_var)
+                if transform is None:
+                    raise Exception(f"Unknown transformation ({compute_var}) encountered")
+                required_input = transform.required_input_variables()
+                missing = set(required_input) - set(known_variables)
+                if len(missing) > 0:
+                    raise Exception(
+                        f"The transformation {compute_var} requires variables which are not present, missing {missing}"
+                    )
+                self.compute_vars[transform.out_varname()] = transform
 
     def data(self, varname: str) -> Data:
         if varname not in self.compute_vars:
             data = self.reader.data(varname)
             return data
         else:
-            transform = TRANSFORMATIONS.get(self.compute_vars[varname])
+            transform = self.compute_vars[varname]
             if isinstance(transform, VariableScaling):
                 data = self.reader.data(transform.REQ_VAR)
                 original_unit = Unit(data.units)
