@@ -294,7 +294,6 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                 format=self.cfg.modelmaps_opts.overlay_save_format,
             )
 
-            # TODO: https://github.com/metno/aerovaldb/issues/96
             with self.avdb.lock():
                 self.avdb.put_map_overlay(
                     overlay_plot,
