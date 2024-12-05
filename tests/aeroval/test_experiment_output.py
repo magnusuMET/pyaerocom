@@ -11,6 +11,7 @@ from pyaerocom.aeroval.experiment_output import ExperimentOutput, ProjectOutput
 from pyaerocom.aeroval.json_utils import read_json, write_json
 from pyaerocom.aeroval import EvalSetup
 from tests.conftest import geojson_unavail
+import pathlib
 
 BASEDIR_DEFAULT = Path(const.OUTPUTDIR) / "aeroval" / "data"
 
@@ -195,6 +196,20 @@ def test_ExperimentOutput__info_from_map_file_error(filename: str):
         f"invalid map filename: {filename}. "
         "Must contain exactly 3 underscores _ to separate obsinfo, vertical, model info, and periods"
     )
+
+
+def test_ExperimentOutput__info_from_contour_dir_file():
+    file = pathlib.PosixPath("path/to/name_vertical_period.txt")
+    output = ExperimentOutput._info_from_contour_dir_file(file)
+
+    assert output == ("name", "vertical", "period")
+
+
+def test_ExperimentOutput__info_from_contour_dir_file_error():
+    file = pathlib.PosixPath("path/to/obs_vertical_model_period.txt")
+    with pytest.raises(ValueError) as e:
+        ExperimentOutput._info_from_contour_dir_file(file)
+    assert "invalid contour filename" in str(e.value)
 
 
 def test_ExperimentOutput__results_summary_EMPTY(dummy_expout: ExperimentOutput):

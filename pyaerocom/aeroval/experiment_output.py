@@ -338,7 +338,8 @@ class ExperimentOutput(ProjectOutput):
 
         return MapInfo(obs_network, obs_var, vert_code, mod_id, mod_var, time_period)
 
-    def _info_from_contour_dir_file(self, file: pathlib.PosixPath):
+    @staticmethod
+    def _info_from_contour_dir_file(file: pathlib.PosixPath):
         """
         Separate map filename into meta info on obs and model content
 
@@ -366,9 +367,9 @@ class ExperimentOutput(ProjectOutput):
 
         if len(spl) != 3:
             raise ValueError(
-                f"invalid map filename: {file}. Must "
+                f"invalid contour filename: {file}. Must "
                 f"contain exactly 2 underscores _ to separate "
-                f"obsinfo, vertical, model info, and periods"
+                f"name, vertical, and periods"
             )
         name = spl[0]
         var_name = spl[1]
