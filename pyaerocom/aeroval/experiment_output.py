@@ -868,8 +868,8 @@ class ExperimentOutput(ProjectOutput):
                 obs_var, mod_var = var_name, var_name
 
                 if mod_name in self.cfg.obs_cfg.keylist():
-                    vert_code = self.cfg.obs_cfg.get_entry(mod_name).obs_vert_type
                     obs_name = mod_name
+                    vert_code = self.cfg.obs_cfg.get_entry(obs_name).obs_vert_type
                     first_with_obs_name = next(
                         (
                             item

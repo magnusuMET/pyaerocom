@@ -1,5 +1,6 @@
 import logging
 import os
+import xarray as xr
 
 from pyaerocom import GriddedData, TsType, const
 from pyaerocom.aeroval._processing_base import DataImporter, ProcessingEngine
@@ -10,6 +11,7 @@ from pyaerocom.aeroval.modelmaps_helpers import (
     CONTOUR,
     OVERLAY,
 )
+from pyaerocom.aeroval.json_utils import round_floats
 from pyaerocom.colocation.colocator import Colocator
 
 from pyaerocom.aeroval.varinfo_web import VarinfoWeb
@@ -268,12 +270,11 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
         data.check_unit()
 
         tst = _jsdate_list(data)
+        data = data.to_xarray().load()
+        files = []
 
         if self.cfg.processing_opts.only_model_maps:
-            self._check_ts_for_only_model_maps(model_name, var, tst)
-
-        data = data.to_xarray()
-        files = []
+            self._check_ts_for_only_model_maps(model_name, var, tst, data)
         for i, date in enumerate(tst):
             outname = f"{model_name}_{var}_{date}"
 
@@ -448,9 +449,24 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
         return data
 
     def _check_ts_for_only_model_maps(
-        self, name: str, var: str, dates: list[int]
+        self, name: str, var: str, dates: list[int], data: xr.Dataset
     ):  # pragma: no cover
         maps_freq = str(self._get_maps_freq())
+        # keys = {"station_name": "ALL",
+        # "pyaerocom_version",
+        # "obs_var": var,
+        # "mod_var": var,
+        # "obs_unit",
+        # "mod_unit",
+        # "obs_freq_src",
+        # "mod_freq_src",
+        # "obs_revision",
+        # "processed_utc",
+        # "vert_code",
+        # "obs_name",
+        # "model_name",
+        # "var_name_web"}
+
         if name in self.cfg.obs_cfg.keylist():
             with self.avdb.lock():
                 timeseries = self.avdb.get_timeseries(
@@ -463,13 +479,22 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                     default={},
                 )
                 for model_name in self.cfg.model_cfg.keylist():
-                    if model_name in timeseries:
+                    if (
+                        model_name in timeseries
+                        and timeseries[model_name].get(maps_freq + "_mod", False) is not None
+                        and timeseries[model_name].get(maps_freq + "_obs", False) is not None
+                    ):
                         continue
-                    timeseries[model_name] = {
-                        maps_freq + "_date": dates,
-                        maps_freq + "_obs": [None] * len(dates),
-                        maps_freq + "_mod": [None] * len(dates),
-                    }
+                    if model_name not in timeseries:
+                        timeseries[model_name] = {}
+                    if not timeseries[model_name].get(maps_freq + "_date"):
+                        timeseries[model_name][maps_freq + "_date"] = dates
+                    if not timeseries[model_name].get(maps_freq + "_obs"):
+                        timeseries[model_name][maps_freq + "_obs"] = list(
+                            round_floats(data.mean(dim=("latitude", "longitude")).values)
+                        )
+                    if not timeseries[model_name].get(maps_freq + "_mod"):
+                        timeseries[model_name][maps_freq + "_mod"] = None
 
                 self.avdb.put_timeseries(
                     timeseries,
@@ -480,7 +505,7 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                     var,
                     self.cfg.obs_cfg.get_entry(name).obs_vert_type,
                 )
-        if name in self.cfg.model_cfg.keylist():
+        elif name in self.cfg.model_cfg.keylist():
             with self.avdb.lock():
                 for obs_name in self.cfg.obs_cfg.keylist():
                     timeseries = self.avdb.get_timeseries(
@@ -492,13 +517,24 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                         self.cfg.obs_cfg.get_entry(obs_name).obs_vert_type,
                         default={},
                     )
-                    if name in timeseries:
+
+                    if (
+                        name in timeseries
+                        and timeseries[name].get(maps_freq + "_mod", False) is not None
+                        and timeseries[name].get(maps_freq + "_obs", False) is not None
+                    ):
                         continue
-                    timeseries[name] = {
-                        maps_freq + "_date": dates,
-                        maps_freq + "_obs": [None] * len(dates),
-                        maps_freq + "_mod": [None] * len(dates),
-                    }
+
+                    if name not in timeseries:
+                        timeseries[name] = {}
+                    if not timeseries[name].get(maps_freq + "_date"):
+                        timeseries[name][maps_freq + "_date"] = dates
+                    if not timeseries[name].get(maps_freq + "_obs"):
+                        timeseries[name][maps_freq + "_obs"] = None
+                    if not timeseries[name].get(maps_freq + "_mod"):
+                        timeseries[name][maps_freq + "_mod"] = list(
+                            round_floats(data.mean(dim=("latitude", "longitude")).values)
+                        )
 
                     self.avdb.put_timeseries(
                         timeseries,
@@ -509,3 +545,7 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                         var,
                         self.cfg.obs_cfg.get_entry(obs_name).obs_vert_type,
                     )
+        else:
+            raise ValueError(
+                f"{name=} not is not in either {self.cfg.obs_cfg.keylist()=} nor {self.cfg.model_cfg.keylist()=}"
+            )
