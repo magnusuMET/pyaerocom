@@ -24,6 +24,7 @@ class VariableScaling:
 
 M_N = 14.006
 M_O = 15.999
+M_S = 32.065
 
 TRANSFORMATIONS = {
     "concNno_from_concno": VariableScaling(
@@ -39,6 +40,20 @@ TRANSFORMATIONS = {
         OUT_UNIT="ug N m-3",
         SCALING_FACTOR=M_N / (M_N + 2 * M_O),
         OUT_VARNAME="concNno2",
+    ),
+    "concSso2_from_concso2": VariableScaling(
+        REQ_VAR="concso2",
+        IN_UNIT="ug m-3",
+        OUT_UNIT="ug S m-3",
+        SCALING_FACTOR=M_S / (M_S + 2 * M_O),
+        OUT_VARNAME="concSso2",
+    ),
+    "vmro3_from_conco3": VariableScaling(
+        REQ_VAR="conco3",
+        IN_UNIT="µg m-3",
+        OUT_UNIT="ppb",
+        SCALING_FACTOR=0.493,  # STD atmosphere and concx_to_vmrx
+        OUT_VARNAME="vmro3",
     ),
 }
 
