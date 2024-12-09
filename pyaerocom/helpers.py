@@ -1738,7 +1738,7 @@ def make_dummy_cube(
         raise ValueError(f"{freq} not a recognized frequency")
 
     start_str = f"{start_yr}-01-01 00:00"
-    stop_str = f"{int(stop_yr)+1}-01-01 00:00"
+    stop_str = f"{int(stop_yr)}-12-31 00:00"
     times = pd.date_range(start_str, stop_str, freq=TS_TYPE_TO_PANDAS_FREQ[freq])
 
     time_since_start = (times - times[0]) / np.timedelta64(1, TS_TYPE_TO_NUMPY_FREQ[freq])
@@ -1781,11 +1781,11 @@ def make_dummy_cube(
         standard_name="time",
         long_name="Time",
         units=time_unit,
-    )[:-1]
+    )
 
     latdim.guess_bounds()
     londim.guess_bounds()
-    dummy = iris.cube.Cube(np.ones((len(times) - 1, len(lats), len(lons))), units=unit)
+    dummy = iris.cube.Cube(np.ones((len(times), len(lats), len(lons))), units=unit)
 
     dummy.add_dim_coord(latdim, 1)
     dummy.add_dim_coord(londim, 2)
