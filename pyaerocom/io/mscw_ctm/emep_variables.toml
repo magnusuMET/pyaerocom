@@ -116,3 +116,4 @@ concspores = "SURF_ug_FUNGAL_SPORES"
 
 # Test
 pmfraction = "SURF_ug_PM10_rh50"
+wetrdnpr = "WDEP_PREC"
