@@ -55,7 +55,7 @@ TRANSFORMATIONS = {
         SCALING_FACTOR=0.493,  # STD atmosphere and concx_to_vmrx
         OUT_VARNAME="vmro3",
     ),
-    "vmro3max_from_conco3": VariableScaling(  # Requies `resample_how`
+    "vmro3max_from_conco3": VariableScaling(  # Requires `resample_how`
         REQ_VAR="conco3",
         IN_UNIT="µg m-3",
         OUT_UNIT="ppb",
