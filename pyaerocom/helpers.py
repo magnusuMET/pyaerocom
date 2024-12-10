@@ -1738,7 +1738,7 @@ def make_dummy_cube(
         raise ValueError(f"{freq} not a recognized frequency")
 
     start_str = f"{start_yr}-01-01 00:00"
-    stop_str = f"{int(stop_yr)}-12-31 00:00"
+    stop_str = f"{int(stop_yr)}-12-31 23:00"
     times = pd.date_range(start_str, stop_str, freq=TS_TYPE_TO_PANDAS_FREQ[freq])
 
     time_since_start = (times - times[0]) / np.timedelta64(1, TS_TYPE_TO_NUMPY_FREQ[freq])
