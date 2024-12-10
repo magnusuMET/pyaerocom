@@ -128,7 +128,7 @@ class OutputPaths(BaseModel):
 class ModelMapsSetup(BaseModel):
     maps_freq: Literal["hourly", "daily", "monthly", "yearly", "coarsest"] = "coarsest"
     plot_types: dict[str, str | set[str]] | set[str] = {CONTOUR}
-    boundaries: BoundingBox | None = None
+    boundaries: BoundingBox = BoundingBox(west=-180, east=180, north=90, south=-90)
     map_observations_only_in_right_menu: bool = False
     overlay_save_format: Literal["webp", "png"] = "webp"
 
