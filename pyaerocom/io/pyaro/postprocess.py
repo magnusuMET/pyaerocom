@@ -15,6 +15,7 @@ class VariableScaling:
     OUT_UNIT: str
     SCALING_FACTOR: float
     OUT_VARNAME: str
+    NOTE: str | None = None
 
     def required_input_variables(self) -> list[str]:
         return [self.REQ_VAR]
@@ -53,15 +54,17 @@ TRANSFORMATIONS = {
         REQ_VAR="conco3",
         IN_UNIT="µg m-3",
         OUT_UNIT="ppb",
-        SCALING_FACTOR=0.493,  # STD atmosphere and concx_to_vmrx
+        SCALING_FACTOR=0.5011,  # 20C and 1013 hPa
         OUT_VARNAME="vmro3",
+        NOTE="The vmro3_from_conco3 transform is only valid at T=20C, p=1013hPa",
     ),
     "vmro3max_from_conco3": VariableScaling(  # Requires `resample_how`
         REQ_VAR="conco3",
         IN_UNIT="µg m-3",
         OUT_UNIT="ppb",
-        SCALING_FACTOR=0.493,  # STD atmosphere and concx_to_vmrx
+        SCALING_FACTOR=0.5011,  # 20C and 1013 hPa
         OUT_VARNAME="vmro3max",
+        NOTE="The vmro3max_from_conco3 transform is only valid at T=20C, p=1013hPa, and the transform requires the use of resample_how to obtain the daily maximum",
     ),
 }
 
