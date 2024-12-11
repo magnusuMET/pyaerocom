@@ -615,7 +615,7 @@ class Config:
         obs_vars,
         obs_aux_requires,
         obs_merge_how,
-        obs_aux_funs: dict[str, str] | None=None,
+        obs_aux_funs: dict[str, str] | None = None,
         obs_aux_units=None,
         **kwargs,
     ):

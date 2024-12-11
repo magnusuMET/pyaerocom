@@ -1,10 +1,11 @@
 import dataclasses
 
-from cf_units import Unit
 from pyaro.timeseries import (
     Reader,
     Data,
 )
+
+from pyaerocom.units_helpers import get_unit_conversion_fac
 
 
 @dataclasses.dataclass
@@ -157,9 +158,9 @@ class PostProcessingReader(Reader):
             transform = self.compute_vars[varname]
             if isinstance(transform, VariableScaling):
                 data = self.reader.data(transform.REQ_VAR)
-                original_unit = Unit(data.units)
-                unit_scaling = original_unit.convert(1, transform.IN_UNIT)
-                scaling = unit_scaling * transform.SCALING_FACTOR
+                scaling = transform.SCALING_FACTOR * get_unit_conversion_fac(
+                    from_unit=data.units, to_unit=transform.IN_UNIT, var_name=transform.REQ_VAR
+                )
                 return PostProcessingReaderData(
                     data, variable=varname, units=transform.OUT_UNIT, scaling=scaling
                 )
