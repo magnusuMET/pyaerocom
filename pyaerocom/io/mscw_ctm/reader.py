@@ -103,6 +103,11 @@ class ReadMscwCtm(GriddedReader):
         "vmro3": ["conco3"],
         # For Pollen
         # "concpolyol": ["concspores"],
+        # For EC
+        "concecFineRes": ["concecFineResNew", "concecFineResAge"],
+        "concecFineNonRes": ["concecFineNonResNew", "concecFineNonResAge"],
+        "concecTotalRes": ["concecFineRes", "concecCoarseRes"],
+        "concecTotalNonRes": ["concecFineNonRes", "concecCoarseNonRes"],
     }
 
     # Functions that are used to compute additional variables (i.e. one
@@ -146,6 +151,11 @@ class ReadMscwCtm(GriddedReader):
         "concSso2": calc_concSso2,
         "vmro3": calc_vmro3,
         # "concpolyol": calc_concpolyol,
+        # For EC
+        "concecFineRes": add_dataarrays,
+        "concecFineNonRes": add_dataarrays,
+        "concecTotalRes": add_dataarrays,
+        "concecTotalNonRes": add_dataarrays,
     }
 
     #: supported filename template, freq-placeholder is for frequencies
