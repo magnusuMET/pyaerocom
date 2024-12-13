@@ -614,8 +614,8 @@ def compute_wetoxs_from_concprcpoxs(data):
     return _compute_wdep_from_concprcp_helper(data, "wetoxs", "concprcpoxs", "pr")
 
 
-def compute_wetoxs_pr_from_concprcpoxs(data):
-    return _compute_wdep_pr_from_concprcp_helper(data, "wetoxs_pr")
+def compute_wetoxspr_from_concprcpoxs(data):
+    return _compute_wdeppr_from_concprcp_helper(data, "wetoxspr")
 
 
 def compute_wetoxs_from_concprcpoxst(data):
@@ -730,8 +730,8 @@ def compute_wetna_from_concprcpna(data):
     return _compute_wdep_from_concprcp_helper(data, "wetna", "concprcpna", "pr")
 
 
-def compute_wetso4_pr_from_concprcpso4(data):
-    return _compute_wdep_pr_from_concprcp_helper(data, "wetso4_pr")
+def compute_wetso4pr_from_concprcpso4(data):
+    return _compute_wdeppr_from_concprcp_helper(data, "wetso4pr")
 
 
 def vmrx_to_concx(data, p_pascal, T_kelvin, vmr_unit, mmol_var, mmol_air=None, to_unit=None):
