@@ -1,5 +1,13 @@
 import os
+from pyaerocom.variable import Variable
+from pyaerocom import const
 
+### Register dummy fraction
+variables = {
+    "fraction": Variable(var_name="fraction", units="1", description="fraction"),
+}
+
+const.register_custom_variables(variables)
 OBS_GROUNDBASED = {
     "EBAS-m": dict(
         obs_id="EBASMC",
@@ -19,7 +27,21 @@ OBS_GROUNDBASED = {
                 units="mg N m-3",
             )
         },
-    )
+    ),
+    "AERONET-Sun": dict(
+        obs_id="AeronetSunV3L2Subset.daily",
+        obs_vars=("fraction",),
+        obs_vert_type="Column",
+        is_bulk=True,
+        bulk_options={
+            "fraction": dict(
+                vars=["od550aer", "od550aer"],
+                model_exists=False,
+                mode="fraction",
+                units="1",
+            )
+        },
+    ),
 }
 
 folder_EMEP = f"/lustre/storeB/project/fou/kl/emep/ModelRuns/2022_REPORTING/TRENDS/2013/"
@@ -32,6 +54,12 @@ MODELS = {
         model_data_dir=folder_EMEP,
         gridded_reader_id={"model": "ReadMscwCtm"},
         model_ts_type_read="monthly",
+    ),
+    "TM5-AP3-CTRL": dict(
+        model_id="TM5-met2010_CTRL-TEST",
+        model_add_vars=dict(od550csaer=["od550aer"]),
+        model_ts_type_read="monthly",
+        flex_ts_type=False,
     ),
 }
 

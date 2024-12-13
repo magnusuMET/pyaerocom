@@ -40,7 +40,7 @@ class BulkFractionEngine(ProcessingEngine, HasColocator):
             #         continue
             #     print(f"Colocating {var_name}, {freq}")
             freq = self.sobs_cfg.ts_type
-            cd, fp = self._run_var(model_name, obs_name, var_name, bulk_vars, freq)
+            cd, fp = self._run_var(model_name, obs_name, var_name, bulk_vars, freq, self.sobs_cfg)
             files_to_convert.append(fp)
 
         engine = ColdataToJsonEngine(self.cfg)
@@ -65,8 +65,9 @@ class BulkFractionEngine(ProcessingEngine, HasColocator):
         var_name: str,
         bulk_vars: list,
         freq: str,
+        obs_entry: ObsEntry,
     ) -> tuple[ColocatedData, str]:
-        model_exists = self.sobs_cfg.bulk_options[var_name]["model_exists"]
+        model_exists = obs_entry.bulk_options[var_name]["model_exists"]
 
         cols = self.get_colocators(bulk_vars, var_name, freq, model_name, obs_name, model_exists)
         # if self.cfg.processing_opts.only_json:
@@ -82,12 +83,14 @@ class BulkFractionEngine(ProcessingEngine, HasColocator):
                 coldatas[num_key][var_name][num_key],
                 coldatas[denum_key][var_name][denum_key],
                 var_name,
+                obs_entry,
             )
         else:
             cd = self._combine_coldatas(
                 coldatas[num_key][num_key][num_key],
                 coldatas[denum_key][denum_key][denum_key],
                 var_name,
+                obs_entry,
             )
         fp = cd.to_netcdf(
             out_dir=cols[num_key].output_dir,
@@ -106,11 +109,15 @@ class BulkFractionEngine(ProcessingEngine, HasColocator):
         return cd, fp
 
     def _combine_coldatas(
-        self, num_coldata: ColocatedData, denum_coldata: ColocatedData, var_name: str
+        self,
+        num_coldata: ColocatedData,
+        denum_coldata: ColocatedData,
+        var_name: str,
+        obs_entry: ObsEntry,
     ) -> ColocatedData:
-        mode = self.sobs_cfg.bulk_options[var_name]["mode"]
-        model_exists = self.sobs_cfg.bulk_options[var_name]["model_exists"]
-        units = self.sobs_cfg.bulk_options[var_name]["units"]
+        mode = obs_entry.bulk_options[var_name]["mode"]
+        model_exists = obs_entry.bulk_options[var_name]["model_exists"]
+        units = obs_entry.bulk_options[var_name]["units"]
 
         if mode == "fraction":
             new_data = num_coldata.data / denum_coldata.data

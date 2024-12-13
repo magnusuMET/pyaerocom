@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 
 from pyaerocom.aeroval.bulkfraction_engine import BulkFractionEngine
 from pyaerocom.aeroval import EvalSetup
@@ -51,3 +52,18 @@ def test_get_colocators(bulkengine_instance: BulkFractionEngine):
 
     assert cols_exist[bulk_vars[0]].colocation_setup.obs_vars[0] == bulk_vars[0]
     assert cols_exist[bulk_vars[1]].colocation_setup.obs_vars[0] == bulk_vars[1]
+
+
+def test__run_var(bulkengine_instance: BulkFractionEngine):
+    obs_name = "AERONET-Sun"
+    model_name = "TM5-AP3-CTRL"
+    var_name = "fraction"
+    freq = "monthly"
+    obsentry = bulkengine_instance.cfg.obs_cfg.get_entry(obs_name)
+    bulk_vars = bulkengine_instance._get_bulk_vars(var_name, obsentry)
+
+    col, fp = bulkengine_instance._run_var(
+        model_name, obs_name, var_name, bulk_vars, freq, obsentry
+    )
+
+    assert pytest.approx(np.nanmean(col.data), rel=1e-5) == 1.0
