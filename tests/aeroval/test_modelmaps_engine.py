@@ -27,10 +27,7 @@ def test__run_working(caplog):
     stp = EvalSetup(**CFG)
     engine = ModelMapsEngine(stp)
     files = engine.run(model_list=["TM5-AP3-CTRL"], var_list=["od550aer"])
-    assert (
-        "PATH_TO_AEROVAL_OUT/data/test/exp1/contour/od550aer_TM5-AP3-CTRL.geojson"
-        in files
-    )
+    assert "PATH_TO_AEROVAL_OUT/data/test/exp1/contour/od550aer_TM5-AP3-CTRL.geojson" in files
 
 
 @pytest.mark.parametrize(
