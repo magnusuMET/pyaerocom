@@ -44,7 +44,7 @@ OBS_GROUNDBASED = {
     ),
 }
 
-folder_EMEP = f"/lustre/storeB/project/fou/kl/emep/ModelRuns/2022_REPORTING/TRENDS/2013/"
+folder_EMEP = "/lustre/storeB/project/fou/kl/emep/ModelRuns/2022_REPORTING/TRENDS/2013/"
 
 
 # Setup for models used in analysis
