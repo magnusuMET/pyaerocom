@@ -425,16 +425,6 @@ def get_CFG(reportyear, year, model_dir) -> dict:
     """
 
     # OBS SPECIFIC FILTERS (combination of the above and more)
-    EEA_RURAL_FILTER = {
-        "station_classification": ["background"],
-        "area_classification": [
-            "rural",
-            "rural-nearcity",
-            "rural-regional",
-            "rural-remote",
-        ],
-    }
-
     BASE_FILTER = {
         "latitude": [30, 82],
         "longitude": [-30, 90],
@@ -446,34 +436,12 @@ def get_CFG(reportyear, year, model_dir) -> dict:
         "set_flags_nan": True,
     }
 
-    EEA_FILTER = {
-        **BASE_FILTER,
-        **EEA_RURAL_FILTER,
-    }
-
-    EEA_FILTER_ALL = {
-        **BASE_FILTER,
-    }
-
     AERONET_FILTER = {
         **BASE_FILTER,  # Forandring fra Daniel
         "altitude": [-20, 1000],
     }
 
     # Station filters
-
-    eea_species = [
-        "concpm10",
-        "concpm25",
-        "concSso2",
-        "concNno2",
-        "concNno",
-        "vmro3max",
-        "vmro3",
-        "concNno2",
-        "vmrox",
-        "concno2",
-    ]
 
     ebas_species = [
         "concNhno3",
@@ -830,175 +798,6 @@ def get_CFG(reportyear, year, model_dir) -> dict:
         "VN0001R",
     ]
 
-    height_ignore_eea = [
-        "FR33220",
-        "TR0047A",
-        "AT72619",
-        "ES1982A",
-        "IT0983A",
-        "IS0040A",
-        "IT2099A",
-        "BG0080A",
-        "IT2159A",
-        "IT0906A",
-        "AT72821",
-        "IT1190A",
-        "IT1976A",
-        "AT56072",
-        "IT2178A",
-        "IS0044A",
-        "IT1335A",
-        "AT0SON1",
-        "IT0703A",
-        "AT72227",
-        "DEUB044",
-        "AT55032",
-        "HR0013A",
-        "FR33120",
-        "AT60182",
-        "IT0908A",
-        "ES1673A",
-        "AT55019",
-        "SK0042A",
-        "SI0032R",
-        "ES0005R",
-        "FR33720",
-        "DEBY196",
-        "AT60177",
-        "IT2128A",
-        "AT2SP18",
-        "FR15045",
-        "R160421",
-        "IT2234A",
-        "TR0118A",
-        "DEST039",
-        "E165168",
-        "AT72110",
-        "FR15013",
-        "ES1348A",
-        "E165169",
-        "AL0206A",
-        "AT72822",
-        "DEBY123",
-        "FR15031",
-        "AT72538",
-        "IS0042A",
-        "FR33114",
-        "AT52300",
-        "IT1859A",
-        "FR33232",
-        "IT2239A",
-        "IS0043A",
-        "PL0003R",
-        "FR31027",
-        "FR33113",
-        "FR15048",
-        "AT54057",
-        "TR0046A",
-        "FR33111",
-        "IT2284A",
-        "AT72550",
-        "IT1037A",
-        "FR33121",
-        "E165167",
-        "IT1847A",
-        "AT72912",
-        "RS0047A",
-        "R610613",
-        "TR0110A",
-        "R160512",
-        "IT1191A",
-        "IT1963A",
-        "FR15053",
-        "RO0009R",
-        "IT0508A",
-        "IT2233A",
-        "MK0041A",
-        "AT72519",
-        "BG0079A",
-        "IT1696A",
-        "IT1619A",
-        "IT2267A",
-        "TR0107A",
-        "AT56071",
-        "FR29440",
-        "AT4S235",
-        "AD0945A",
-        "IS0038A",
-        "E165166",
-        "PT01047",
-        "AT55018",
-        "SK0002R",
-        "IT0499A",
-        "HR0014A",
-        "IT0591A",
-        "IT0507A",
-        "AT72315",
-        "E165170",
-        "ES1432A",
-        "IT1166A",
-        "AT4S254",
-        "IT1967A",
-        "AT2VL52",
-        "IT1930A",
-        "AT72115",
-        "AT82708",
-        "IT0988A",
-        "FR15038",
-        "AT82801",
-        "IT2285A",
-        "NO0039R",
-        "TR0020A",
-        "IT2096A",
-        "AD0942A",
-        "TR0071A",
-        "E165165",
-        "ES0354A",
-        "AT72910",
-        "ES1882A",
-        "IT1725A",
-        "AT60150",
-        "CH0024A",
-        "IT1114A",
-        "AT72113",
-        "IT1852A",
-        "IS0048A",
-        "FR15017",
-        "FR15039",
-        "IT0980A",
-        "IT0502A",
-        "IT1678A",
-        "IT1334A",
-        "IT0978A",
-        "FR15043",
-        "IT2279A",
-        "IT0775A",
-        "IT1539A",
-        "AT72123",
-        "IT2014A",
-        "XK0005A",
-        "AT2WO15",
-        "FR33122",
-        "XK0007A",
-        "AT60196",
-        "CH0033A",
-        "IT1385A",
-        "GR0405A",
-        "AT52000",
-        "IT2266A",
-        "FR15046",
-        "AT72223",
-        "FR24024",
-        "IT0979A",
-        "AT2SP10",
-        "IT2179A",
-        "IT0977A",
-        "AT72530",
-        "ES1248A",
-        "AT72106",
-        "IT0753A",
-    ]
-
     EBAS_FILTER = {
         key: dict(
             **EBAS_FILTER,
@@ -1009,21 +808,7 @@ def get_CFG(reportyear, year, model_dir) -> dict:
     }
 
     EEA_FILTER = {
-        key: dict(
-            **EEA_FILTER,
-            station_name=height_ignore_eea,
-            negate="station_name",
-        )
-        for key in eea_species
-    }
-
-    EEA_FILTER_ALL = {
-        key: dict(
-            **EEA_FILTER_ALL,
-            station_name=height_ignore_eea,
-            negate="station_name",
-        )
-        for key in eea_species
+        **BASE_FILTER,
     }
 
     OBS_GROUNDBASED = {
@@ -1247,183 +1032,199 @@ def get_CFG(reportyear, year, model_dir) -> dict:
         #    EEA-rural
         ################
         "EEA-d-rural": dict(
-            obs_id="EEAAQeRep.v2",
+            obs_id="EEA-d-rural",
             obs_vars=[
                 "concpm10",
                 "concpm25",
                 "concSso2",
                 "concNno2",
-                "vmro3max",
-                # "concno2",
-            ],
-            web_interface_name="EEA-rural",
-            obs_vert_type="Surface",
-            obs_filters=EEA_FILTER,
-        ),
-        "EEA-d-rural-no": dict(
-            obs_id="EEAAQeRep.v2",
-            obs_vars=[
                 "concNno",
+                "vmro3max",
             ],
+            pyaro_config={
+                "name": "EEA-d-rural",
+                "reader_id": "eeareader",
+                "filename_or_obj_or_url": "/lustre/storeB/project/aerocom/aerocom1/AEROCOM_OBSDATA/EEA-AQDS/download",
+                "name_map": {
+                    "PM2.5": "concpm25",
+                    "PM10": "concpm10",
+                    "NO": "concno",
+                    "NO2": "concno2",
+                    "SO2": "concso2",
+                    "O3": "conco3",
+                },
+                "filters": {
+                    "time_bounds": {
+                        "startend_include": [
+                            (f"{year}-01-01 00:00:00", f"{year+1}-01-01 00:00:00")
+                        ],
+                    },
+                    "relaltitude": {
+                        "topo_file": "/lustre/storeB/project/fou/kl/emep/Auxiliary/topography.nc",
+                        "rdiff": 500,
+                    },
+                },
+                "post_processing": [
+                    "concNno_from_concno",
+                    "concNno2_from_concno2",
+                    "concSso2_from_concso2",
+                    "vmro3max_from_conco3",
+                ],
+                "dataset": "verified",
+                "station_area": [
+                    "rural",
+                    "rural-regional",
+                    "rural-nearcity",
+                    "rural-remote",
+                ],
+                "station_type": [
+                    "background",
+                ],
+            },
             web_interface_name="EEA-rural",
             obs_vert_type="Surface",
             obs_filters=EEA_FILTER,
+            ts_type="daily",
         ),
         "EEA-h-diurnal-rural": dict(
-            obs_id="EEAAQeRep.v2",
-            obs_vars=["vmro3", "concNno2"],
-            obs_vert_type="Surface",
+            obs_id="EEA-h-diurnal-rural",
+            obs_vars=[
+                "concNno2",
+                "vmro3",
+            ],
+            pyaro_config={
+                "name": "EEA-h-diurnal-rural",
+                "reader_id": "eeareader",
+                "filename_or_obj_or_url": "/lustre/storeB/project/aerocom/aerocom1/AEROCOM_OBSDATA/EEA-AQDS/download",
+                "name_map": {
+                    "PM2.5": "concpm25",
+                    "PM10": "concpm10",
+                    "NO": "concno",
+                    "NO2": "concno2",
+                    "SO2": "concso2",
+                    "O3": "conco3",
+                },
+                "filters": {
+                    "time_bounds": {
+                        "startend_include": [
+                            (f"{year}-01-01 00:00:00", f"{year+1}-01-01 00:00:00")
+                        ],
+                    },
+                    "relaltitude": {
+                        "topo_file": "/lustre/storeB/project/fou/kl/emep/Auxiliary/topography.nc",
+                        "rdiff": 500,
+                    },
+                },
+                "post_processing": [
+                    "concNno2_from_concno2",
+                    "vmro3_from_conco3",
+                ],
+                "dataset": "verified",
+                "station_area": [
+                    "rural",
+                    "rural-regional",
+                    "rural-nearcity",
+                    "rural-remote",
+                ],
+                "station_type": [
+                    "background",
+                ],
+            },
             web_interface_name="EEA-h-rural",
-            ts_type="hourly",
-            # diurnal_only=True,
-            harmonise_units=False,
+            obs_vert_type="Surface",
+            obs_filters={**EEA_FILTER, "ts_type": "hourly"},
             resample_how="mean",
-            obs_filters={**EEA_FILTER, "ts_type": "hourly"},
-        ),
-        "EEA-d-ox-rural": dict(
-            obs_id="EEA-ox-rural",
-            obs_vars=["vmrox"],
-            obs_type="ungridded",
-            obs_vert_type="Surface",
-            web_interface_name="EEA-rural",
-            ts_type="daily",
-            # min_num_obs=None,
-            obs_merge_how={
-                "vmrox": "eval",
-            },
-            obs_aux_requires={
-                "vmrox": {
-                    "EEAAQeRep.v2": ["vmro3", "vmrno2"],
-                }
-            },
-            obs_aux_funs={
-                "vmrox":
-                # variables used in computation method need to be based on AeroCom
-                # units, since the colocated StationData objects (from which the
-                # new UngriddedData is computed, will perform AeroCom unit check
-                # and conversion)
-                "(EEAAQeRep.v2;vmro3+EEAAQeRep.v2;vmrno2)"
-            },
-            obs_aux_units={"vmrox": "nmol mol-1"},
-            obs_filters={**EEA_FILTER},
-        ),
-        "EEA-h-ox-rural-diu": dict(
-            obs_id="EEA-ox-rural-diu",
-            obs_vars=["vmrox"],
-            obs_type="ungridded",
-            obs_vert_type="Surface",
-            web_interface_name="EEA-h-rural",
             ts_type="hourly",
-            # diurnal_only=True,
-            obs_merge_how={
-                "vmrox": "eval",
-            },
-            obs_aux_requires={
-                "vmrox": {
-                    "EEAAQeRep.v2": ["vmro3", "vmrno2"],
-                }
-            },
-            obs_aux_funs={
-                "vmrox":
-                # variables used in computation method need to be based on AeroCom
-                # units, since the colocated StationData objects (from which the
-                # new UngriddedData is computed, will perform AeroCom unit check
-                # and conversion)
-                "(EEAAQeRep.v2;vmro3+EEAAQeRep.v2;vmrno2)"
-            },
-            obs_aux_units={"vmrox": "nmol mol-1"},
-            obs_filters={**EEA_FILTER, "ts_type": "hourly"},
         ),
         ################
         #    EEA-all
         ################
         "EEA-d-all": dict(
-            obs_id="EEAAQeRep.v2",
+            obs_id="EEA-d-all",
             obs_vars=[
                 "concpm10",
                 "concpm25",
                 "concSso2",
                 "concNno2",
-                "vmro3max",
-                # "concno2",
-            ],
-            web_interface_name="EEA-all",
-            obs_vert_type="Surface",
-            obs_filters=EEA_FILTER_ALL,
-        ),
-        "EEA-d-all-no": dict(
-            obs_id="EEAAQeRep.v2",
-            obs_vars=[
                 "concNno",
+                "vmro3max",
             ],
+            pyaro_config={
+                "name": "EEA-d-all",
+                "reader_id": "eeareader",
+                "filename_or_obj_or_url": "/lustre/storeB/project/aerocom/aerocom1/AEROCOM_OBSDATA/EEA-AQDS/download",
+                "name_map": {
+                    "PM2.5": "concpm25",
+                    "PM10": "concpm10",
+                    "NO": "concno",
+                    "NO2": "concno2",
+                    "SO2": "concso2",
+                    "O3": "conco3",
+                },
+                "filters": {
+                    "time_bounds": {
+                        "startend_include": [
+                            (f"{year}-01-01 00:00:00", f"{year+1}-01-01 00:00:00")
+                        ],
+                    },
+                    "relaltitude": {
+                        "topo_file": "/lustre/storeB/project/fou/kl/emep/Auxiliary/topography.nc",
+                        "rdiff": 500,
+                    },
+                },
+                "post_processing": [
+                    "concNno_from_concno",
+                    "concNno2_from_concno2",
+                    "concSso2_from_concso2",
+                    "vmro3max_from_conco3",
+                ],
+                "dataset": "verified",
+            },
             web_interface_name="EEA-all",
             obs_vert_type="Surface",
-            obs_filters=EEA_FILTER_ALL,
+            obs_filters=EEA_FILTER,
+            ts_type="daily",
         ),
         "EEA-h-diurnal-all": dict(
-            obs_id="EEAAQeRep.v2",
-            obs_vars=["vmro3", "concNno2"],
-            obs_vert_type="Surface",
+            obs_id="EEA-h-diurnal-all",
+            obs_vars=[
+                "concNno2",
+                "vmro3",
+            ],
+            pyaro_config={
+                "name": "EEA-h-diurnal-all",
+                "reader_id": "eeareader",
+                "filename_or_obj_or_url": "/lustre/storeB/project/aerocom/aerocom1/AEROCOM_OBSDATA/EEA-AQDS/download",
+                "name_map": {
+                    "PM2.5": "concpm25",
+                    "PM10": "concpm10",
+                    "NO": "concno",
+                    "NO2": "concno2",
+                    "SO2": "concso2",
+                    "O3": "conco3",
+                },
+                "filters": {
+                    "time_bounds": {
+                        "startend_include": [
+                            (f"{year}-01-01 00:00:00", f"{year+1}-01-01 00:00:00")
+                        ],
+                    },
+                    "relaltitude": {
+                        "topo_file": "/lustre/storeB/project/fou/kl/emep/Auxiliary/topography.nc",
+                        "rdiff": 500,
+                    },
+                },
+                "post_processing": [
+                    "concNno2_from_concno2",
+                    "vmro3_from_conco3",
+                ],
+                "dataset": "verified",
+            },
             web_interface_name="EEA-h-all",
-            ts_type="hourly",
-            # diurnal_only=True,
-            harmonise_units=False,
+            obs_vert_type="Surface",
+            obs_filters={**EEA_FILTER, "ts_type": "hourly"},
             resample_how="mean",
-            obs_filters={**EEA_FILTER_ALL, "ts_type": "hourly"},
-        ),
-        "EEA-d-ox-all": dict(
-            obs_id="EEA-ox-all",
-            obs_vars=["vmrox"],
-            obs_type="ungridded",
-            obs_vert_type="Surface",
-            web_interface_name="EEA-all",
-            ts_type="daily",
-            # min_num_obs=None,
-            obs_merge_how={
-                "vmrox": "eval",
-            },
-            obs_aux_requires={
-                "vmrox": {
-                    "EEAAQeRep.v2": ["vmro3", "vmrno2"],
-                }
-            },
-            obs_aux_funs={
-                "vmrox":
-                # variables used in computation method need to be based on AeroCom
-                # units, since the colocated StationData objects (from which the
-                # new UngriddedData is computed, will perform AeroCom unit check
-                # and conversion)
-                "(EEAAQeRep.v2;vmro3+EEAAQeRep.v2;vmrno2)"
-            },
-            obs_aux_units={"vmrox": "nmol mol-1"},
-            obs_filters={**EEA_FILTER_ALL},
-        ),
-        "EEA-h-ox-all-diu": dict(
-            obs_id="EEA-ox-all-diu",
-            obs_vars=["vmrox"],
-            obs_type="ungridded",
-            obs_vert_type="Surface",
-            web_interface_name="EEA-h-all",
             ts_type="hourly",
-            # diurnal_only=True,
-            obs_merge_how={
-                "vmrox": "eval",
-            },
-            obs_aux_requires={
-                "vmrox": {
-                    "EEAAQeRep.v2": ["vmro3", "vmrno2"],
-                }
-            },
-            obs_aux_funs={
-                "vmrox":
-                # variables used in computation method need to be based on AeroCom
-                # units, since the colocated StationData objects (from which the
-                # new UngriddedData is computed, will perform AeroCom unit check
-                # and conversion)
-                "(EEAAQeRep.v2;vmro3+EEAAQeRep.v2;vmrno2)"
-            },
-            obs_aux_units={"vmrox": "nmol mol-1"},
-            obs_filters={**EEA_FILTER_ALL, "ts_type": "hourly"},
         ),
         ##################
         #    AERONET
