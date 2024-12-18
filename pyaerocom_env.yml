@@ -26,10 +26,11 @@ dependencies:
   - tomli >=2.0.1
   - importlib-resources >=5.10
   - typing-extensions >=4.6.1
+  - matplotlib<3.10.0
 ## from pip
   - pip
   - pip:
-    - geojsoncontour<3.10.0
+    - geojsoncontour
     - geocoder_reverse_natural_earth >= 0.0.2
     - pyaro >= 0.0.14
     - aerovaldb >= 0.1.1
