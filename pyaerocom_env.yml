@@ -26,7 +26,6 @@ dependencies:
   - tomli >=2.0.1
   - importlib-resources >=5.10
   - typing-extensions >=4.6.1
-  - matplotlib<3.10.0
 ## from pip
   - pip
   - pip:
