@@ -38,7 +38,7 @@ dependencies = [
     "geocoder_reverse_natural_earth",
     "tqdm",
     "openpyxl",
-    "geojsoncontour",
+    "geojsoncontour<3.10.0",
     "typer>=0.7.0",
     # python < 3.11
     'tomli>=2.0.1; python_version < "3.11"',

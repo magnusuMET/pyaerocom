@@ -29,7 +29,7 @@ dependencies:
 ## from pip
   - pip
   - pip:
-    - geojsoncontour
+    - geojsoncontour<3.10.0
     - geocoder_reverse_natural_earth >= 0.0.2
     - pyaro >= 0.0.14
     - aerovaldb >= 0.1.1
