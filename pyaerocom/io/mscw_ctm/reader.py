@@ -108,6 +108,7 @@ class ReadMscwCtm(GriddedReader):
         "concecFineNonRes": ["concecFineNonResNew", "concecFineNonResAge"],
         "concecTotalRes": ["concecFineRes", "concecCoarseRes"],
         "concecTotalNonRes": ["concecFineNonRes", "concecCoarseNonRes"],
+        "concebc": ["concecTotalRes", "concecTotalNonRes"],
     }
 
     # Functions that are used to compute additional variables (i.e. one
@@ -156,6 +157,7 @@ class ReadMscwCtm(GriddedReader):
         "concecFineNonRes": add_dataarrays,
         "concecTotalRes": add_dataarrays,
         "concecTotalNonRes": add_dataarrays,
+        "concebc": add_dataarrays,
     }
 
     #: supported filename template, freq-placeholder is for frequencies
@@ -278,7 +280,9 @@ class ReadMscwCtm(GriddedReader):
     @functools.cache
     def _get_year_from_nc(filename: str) -> int:
         with xr.open_dataset(filename) as nc:
-            return np.mean(nc["time"][:]).data.astype("datetime64[Y]").astype(int) + 1970
+            return (
+                np.mean(nc["time"][:]).data.astype("datetime64[Y]").astype(int) + 1970
+            )
 
     def _get_yrs_from_filepaths(self) -> list[str]:
         """Get available years of data from the filepaths. The year of the first
@@ -327,7 +331,9 @@ class ReadMscwCtm(GriddedReader):
                 raise ValueError(f"The year {yr} of {path} is not in {yrs}")
 
             if yr in found_yrs:
-                raise ValueError(f"The year {yr} of {path} is already found: {found_yrs}")
+                raise ValueError(
+                    f"The year {yr} of {path} is already found: {found_yrs}"
+                )
 
             found_yrs.append(yr)
             clean_paths.append(path)
@@ -388,7 +394,9 @@ class ReadMscwCtm(GriddedReader):
         Paths to data file
         """
         if self._data_dir is None and self._filepaths is None:  # pragma: no cover
-            raise AttributeError("data_dir or filepaths needs to be set before accessing")
+            raise AttributeError(
+                "data_dir or filepaths needs to be set before accessing"
+            )
         return self._private.filepaths
 
     @_filepaths.setter
@@ -516,7 +524,9 @@ class ReadMscwCtm(GriddedReader):
         ts_type = self._ts_type_from_filename(self._filename)
         fps = self._clean_filepaths(fps, yrs, ts_type)
         if len(fps) > 1 and ts_type == "hourly":
-            raise ValueError(f"ts_type {ts_type} can not be hourly when using multiple years")
+            raise ValueError(
+                f"ts_type {ts_type} can not be hourly when using multiple years"
+            )
         logger.info(f"Opening {fps}")
         ds = xr.open_mfdataset(fps, chunks={"time": 24})
 
