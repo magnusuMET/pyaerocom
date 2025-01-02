@@ -23,6 +23,13 @@ class VariableScaling:
     def out_varname(self) -> str:
         return self.OUT_VARNAME
 
+@dataclasses.dataclass
+class VariableCombiner:
+    REQ_VARS: tuple[str, str]
+    IN_UNITS: tuple[str, str]
+    OUT_UNIT: str
+    OUT_VARNAME: str
+    OP: str
 
 M_N = 14.006
 M_O = 15.999
@@ -66,6 +73,13 @@ TRANSFORMATIONS = {
         OUT_VARNAME="vmro3max",
         NOTE="The vmro3max_from_conco3 transform is only valid at T=20C, p=1013hPa, and the transform requires the use of resample_how to obtain the daily maximum",
     ),
+    "vmrox_from_concno2_vmro3": VariableCombiner(
+        REQ_VARS=("concno2", "vmro3"),
+        IN_UNITS=("nmol mol-1", "nmol mol-1"),
+        OUT_UNIT="nmol mol-1",
+        OUT_VARNAME="vmrox",
+        OP="ADD",
+    )
 }
 
 
@@ -166,6 +180,17 @@ class PostProcessingReader(Reader):
                 )
                 return PostProcessingReaderData(
                     data, variable=varname, units=transform.OUT_UNIT, scaling=scaling
+                )
+            if isinstance(transform, VariableCombiner):
+                data = (self.read(transform.REQ_VARS[0]), self.read(transform.REQ_VARS[1]))
+                scalings = get_unit_conversion_fac(from_unit=data[0].un)
+                d0 = StationData("??")
+                d1 = d0
+                breakpoint()
+                _combine_2_sites(
+                    d0, "concno2",
+                    d1, "conco3",
+                    var_unit_out=transform.OUT_UNIT,
                 )
             else:
                 raise Exception(
