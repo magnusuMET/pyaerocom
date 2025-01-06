@@ -147,9 +147,7 @@ def fix_coord(ds: xr.Dataset) -> xr.Dataset:
     ds.longitude.attrs.update(
         long_name="longitude", standard_name="longitude", units="degrees_east"
     )
-    ds.latitude.attrs.update(
-        long_name="latitude", standard_name="latitude", units="degrees_north"
-    )
+    ds.latitude.attrs.update(long_name="latitude", standard_name="latitude", units="degrees_north")
     return ds
 
 
@@ -190,9 +188,7 @@ def read_dataset(paths: list[Path], *, day: int) -> xr.Dataset:
     def preprocess(ds: xr.Dataset) -> xr.Dataset:
         return ds.pipe(forecast_day, day=day).pipe(fix_missing_vars)
 
-    ds = xr.open_mfdataset(
-        paths, preprocess=preprocess, parallel=False, chunks={"time": 24}
-    )
+    ds = xr.open_mfdataset(paths, preprocess=preprocess, parallel=False, chunks={"time": 24})
     return ds.pipe(fix_coord).pipe(fix_names)
 
 
@@ -318,9 +314,7 @@ class ReadCAMS2_83(GriddedReader):
         if val is None:
             raise AttributeError("run_type cannot be set as None")
         elif not isinstance(val, RunType):
-            raise AttributeError(
-                f"run_type cannot be set as {type(val)}, but must be a RunType"
-            )
+            raise AttributeError(f"run_type cannot be set as {type(val)}, but must be a RunType")
 
         self._run_type = val
 
@@ -329,12 +323,8 @@ class ReadCAMS2_83(GriddedReader):
         """
         Path to data file
         """
-        if (
-            self.data_dir is None and self._filepaths is None
-        ):  # type:ignore[unreachable]
-            raise AttributeError(
-                "data_dir or filepaths needs to be set before accessing"
-            )
+        if self.data_dir is None and self._filepaths is None:  # type:ignore[unreachable]
+            raise AttributeError("data_dir or filepaths needs to be set before accessing")
         if self._filepaths is None:
             paths = list(
                 model_paths(
@@ -422,9 +412,7 @@ class ReadCAMS2_83(GriddedReader):
         """
         return var_name in AEROCOM_NAMES.values()
 
-    def read_var(
-        self, var_name: str, ts_type: str | None = None, **kwargs
-    ) -> GriddedData:
+    def read_var(self, var_name: str, ts_type: str | None = None, **kwargs) -> GriddedData:
         """Load data for given variable.
 
         Parameters
@@ -468,9 +456,9 @@ if __name__ == "__main__":
     reader = ReadCAMS2_83(data_dir=data_dir, data_id=data_id)
     reader.daterange = ("2021-12-01", "2021-12-04")
     print(
-        np.unique(
-            reader.daterange.values.astype("datetime64[Y]").astype("int") + 1970
-        ).astype("str")
+        np.unique(reader.daterange.values.astype("datetime64[Y]").astype("int") + 1970).astype(
+            "str"
+        )
     )
     print(reader.filepaths)
     # dates = ("2021-12-01", "2021-12-04")
