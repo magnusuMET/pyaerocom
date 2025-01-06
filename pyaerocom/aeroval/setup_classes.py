@@ -27,6 +27,7 @@ from pydantic import (
     computed_field,
     field_serializer,
     field_validator,
+    model_validator,
 )
 
 from pyaerocom import __version__, const
@@ -355,6 +356,24 @@ class EvalSetup(BaseModel):
     ] = ""
 
     _aux_funs: dict = {}
+
+    @model_validator(mode="after")
+    def model_validator(self) -> Self:
+        # Warn user if var_order_menu does not match used variables.
+        var_order_menu = set(self.webdisp_opts.var_order_menu)
+        obs_cfg = self.obs_cfg
+
+        variables = set()
+        for entry in obs_cfg:
+            for var in entry.obs_vars:
+                variables.add(var)
+
+        if not var_order_menu.issuperset(variables):
+            logger.warning(
+                f"Some variables are configured as obsvars but not included in var_order_menu. They may not show up on aerovalweb. Missing variables: {list(variables - var_order_menu)}"
+            )
+
+        return self
 
     @computed_field
     @cached_property
