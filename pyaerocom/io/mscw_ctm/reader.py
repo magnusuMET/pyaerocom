@@ -574,6 +574,8 @@ class ReadMscwCtm(GriddedReader):
                 start_date = min([x for x in [start_date, file_start_date] if x is not None])
                 end_date = max([x for x in [file_end_date, file_end_date] if x is not None])
 
+            logger.info(f"******* Found enddate, start_date: {end_date}, {start_date}")
+            logger.info(f"{(end_date - start_date) / np.timedelta64(1, 'h')}")
             if (end_date - start_date) / np.timedelta64(1, "h") > (366 * 24):
                 raise ValueError(
                     f"ts_type {ts_type} can not be hourly when using multiple years ({start_date} - {end_date})"
