@@ -31,7 +31,7 @@ from pyaerocom.exceptions import (
 
 logger = logging.getLogger(__name__)
 
-MODELREADERS_USE_MAP_FREQ = ["ReadMscwCtm"]
+MODELREADERS_USE_MAP_FREQ = ["ReadMscwCtm"]  # , "ReadCAMS2_83"]
 
 
 class ModelMapsEngine(ProcessingEngine, DataImporter):
@@ -126,12 +126,17 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                     _files = self._process_contour_map_var(
                         model_name, var, self.reanalyse_existing
                     )
-                    files.append(_files)
+
+                    if isinstance(_files, str):
+                        _files = [_files]
+                    files.extend(_files)
                 if self.cfg.modelmaps_opts.plot_types == {OVERLAY} or make_overlay:
                     # create overlay (pixel) plots
                     _files = self._process_overlay_map_var(
                         model_name, var, self.reanalyse_existing
                     )
+                    if isinstance(_files, str):
+                        _files = [_files]
                     files.extend(_files)
 
             except ModelVarNotAvailable as ex:
@@ -322,7 +327,7 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
 
         Returns
         -------
-        TSType
+        TsType
         """
         maps_freq = TsType(self.cfg.modelmaps_opts.maps_freq)
         if maps_freq == "coarsest":  # TODO: Implement this in terms of a TsType object. #1267
@@ -368,7 +373,9 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                 logger.info(f"Found coarsest maps_freq that is available as model data: {freq}")
                 return freq
 
-        raise ValueError("Could not find any TS type to read maps")
+        freq = min(TsType(fq) for fq in model_ts_types)
+        logger.info(f"Found coarsest freq available as model data: {freq}")
+        return freq
 
     def _read_model_data(self, model_name: str, var: str) -> GriddedData:
         """
@@ -431,7 +438,13 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
             ts_types = reader.ts_types
             ts_type_read = str(self._get_read_model_freq(ts_types))
         else:
-            ts_type_read = self.cfg.time_cfg.main_freq
+            model_ts_type_read = self.cfg.model_cfg.get_entry(model_name).model_ts_type_read
+            if model_ts_type_read:
+                ts_type_read = model_ts_type_read
+            else:
+                ts_type_read = (
+                    self.cfg.colocation_opts.ts_type
+                )  # emulates the old way closer than None
 
         data = reader.read_var(
             var,
