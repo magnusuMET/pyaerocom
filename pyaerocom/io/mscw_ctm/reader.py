@@ -108,6 +108,7 @@ class ReadMscwCtm(GriddedReader):
         "concecFineNonRes": ["concecFineNonResNew", "concecFineNonResAge"],
         "concecTotalRes": ["concecFineRes", "concecCoarseRes"],
         "concecTotalNonRes": ["concecFineNonRes", "concecCoarseNonRes"],
+        "concebc": ["concecFine", "concecCoarse"],
     }
 
     # Functions that are used to compute additional variables (i.e. one
