@@ -1,8 +1,8 @@
+from typing import Any
+import itertools
 import cartopy.crs as ccrs
 import matplotlib
 import matplotlib.pyplot as plt
-from cartopy.mpl.geoaxes import GeoAxes
-from matplotlib.axes import Axes
 from matplotlib.colors import ListedColormap, to_hex
 from seaborn import color_palette
 import io
@@ -10,11 +10,9 @@ import xarray
 import pandas as pd
 import glob
 import os
-
-try:
-    from geojsoncontour import contourf_to_geojson
-except ModuleNotFoundError:
-    contourf_to_geojson = None
+import numpy as np
+import geojson
+import contourpy
 
 from pyaerocom import GriddedData
 from pyaerocom.aeroval.coldatatojson_helpers import _get_jsdate
@@ -41,6 +39,51 @@ def _jsdate_list(data):
     return _get_jsdate(idx.values).tolist()
 
 
+def _filled_contours_to_geojson_features(
+    x, y, z, levels: list[float], properties: list[dict[str, Any]] | None = None
+) -> geojson.FeatureCollection:
+    """Convert a grid to geojson contours
+    Input:
+        x: 1D or 2D array
+        y: 1D or 2D array
+        z: 2D array, can be masked
+        levels: cutoffs for the contours. Must be monotonically increasing. Can be ±np.inf
+        properties: fed to the Feature of each polygon. Length must be one less than levels
+    """
+    if len(levels) < 2:
+        raise ValueError("Must have at least two levels")
+
+    if properties is None:
+        properties = [{} for _ in range(len(levels) - 1)]
+    else:
+        if len(properties) != len(levels) - 1:
+            raise ValueError(
+                "properties must be an array of size {len(levels)-1} to match levels (size {len(levels)})"
+            )
+
+    contours_generator = contourpy.contour_generator(x=x, y=y, z=z, fill_type="OuterOffset")
+    multicontours = contours_generator.multi_filled(levels)
+
+    features = []
+    for (level_polygons, level_offsets), prop in zip(multicontours, properties):
+        combined_poly = []
+        for chunk_polygons, chunk_offsets in zip(level_polygons, level_offsets):
+            polygon = []
+            for w0, w1 in itertools.pairwise(chunk_offsets):
+                polygon.append(chunk_polygons[w0:w1].tolist())
+
+            combined_poly.append(polygon)
+
+        if len(combined_poly) == 0:
+            continue
+        mp = geojson.MultiPolygon(coordinates=combined_poly)
+        feature = geojson.Feature(geometry=mp, properties=prop)
+        features.append(feature)
+
+    fc = geojson.FeatureCollection(features)
+    return fc
+
+
 def calc_contour_json(data, cmap, cmap_bins):
     """
     Convert gridded data into contours for json output
@@ -60,21 +103,7 @@ def calc_contour_json(data, cmap, cmap_bins):
         dictionary containing contour data
 
     """
-    if contourf_to_geojson is None:
-        raise ModuleNotFoundError(
-            "Map processing for aeroval interface requires "
-            "the geojsoncontour package which is not part of the "
-            "standard conda installation of pyaerocom."
-        )
-
-    plt.close("all")
-    matplotlib.use("Agg")
-    GeoAxes._pcolormesh_patched = Axes.pcolormesh
-
     cm = ListedColormap(color_palette(cmap, len(cmap_bins) - 1))
-
-    proj = ccrs.PlateCarree()
-    ax = plt.axes(projection=proj)
 
     try:
         data.check_dimcoords_tseries()
@@ -85,36 +114,28 @@ def calc_contour_json(data, cmap, cmap_bins):
     lats = data.latitude.points
     lons = data.longitude.points
 
-    geojson = {}
+    geojsons = {}
     tst = _jsdate_list(data)
+    colors_hex = [to_hex(val) for val in cm.colors]
     for i, date in enumerate(tst):
         datamon = nparr[i]
-        contour = ax.contourf(
-            lons,
-            lats,
-            datamon,
-            transform=proj,
-            colors=cm.colors,
-            levels=cmap_bins,
-            extend="max",
+        levels = cmap_bins
+        # Top contour should include everything above seconds to last value
+        levels[-1] = np.inf
+
+        geojson = _filled_contours_to_geojson_features(
+            lons, lats, datamon, levels=cmap_bins, properties=[{"fill": val} for val in colors_hex]
         )
+        geojsons[str(date)] = geojson
 
-        result = contourf_to_geojson(contourf=contour)
-
-        geojson[str(date)] = eval(result)
-
-    ax.figure.colorbar(contour, ax=ax)
-    colors_hex = [to_hex(val) for val in cm.colors]
-
-    geojson["legend"] = {
+    geojsons["legend"] = {
         "colors": colors_hex,
         "levels": list(cmap_bins),
         "var_name": data.var_name,
         "units": str(data.units),
     }
 
-    plt.close("all")
-    return geojson
+    return geojsons
 
 
 def plot_overlay_pixel_maps(
