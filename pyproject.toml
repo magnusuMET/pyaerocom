@@ -27,7 +27,6 @@ dependencies = [
     "xarray>=2022.12.0",
     "cartopy>=0.21.1",
     "matplotlib>=3.7.1",
-    "matplotlib<3.10.0", # geojsoncontour bug with .collections deprecation in matplotlib, see #1462
     "scipy>=1.10.1",
     "pandas>=1.5.3",
     "numpy>=1.25.0",
@@ -39,7 +38,7 @@ dependencies = [
     "geocoder_reverse_natural_earth",
     "tqdm",
     "openpyxl",
-    "geojsoncontour",
+    "geojsoncontour>=0.5.0",
     "typer>=0.7.0",
     # python < 3.11
     'tomli>=2.0.1; python_version < "3.11"',
