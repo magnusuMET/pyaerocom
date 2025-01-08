@@ -1,19 +1,14 @@
 import logging
-from traceback import format_exc
-
-import numpy as np
-import xarray as xr
 
 from pyaerocom import ColocatedData
 from pyaerocom.aeroval._processing_base import HasColocator, ProcessingEngine
 from pyaerocom.aeroval.obsentry import ObsEntry
 from pyaerocom.aeroval.coldatatojson_engine import ColdataToJsonEngine
 from pyaerocom.aeroval.setup_classes import EvalSetup
-from pyaerocom.helpers import get_lowest_resolution
+
 from pyaerocom.colocation.colocator import Colocator
 from pyaerocom.colocation.colocation_setup import ColocationSetup
 
-from pyaerocom import TsType
 
 logger = logging.getLogger(__name__)
 
@@ -125,7 +120,7 @@ class BulkFractionEngine(ProcessingEngine, HasColocator):
         elif mode == "product":
             new_data = num_coldata.data * denum_coldata.data
         else:
-            raise ValueError(f"Mode must be either fraction of product.")
+            raise ValueError("Mode must be either fraction of product.")
         if model_exists:
             # TODO: Unsure if this works!!!
             new_data[1] = num_coldata.data[1].where(new_data[1])
