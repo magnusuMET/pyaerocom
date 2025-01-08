@@ -7,7 +7,6 @@ dependencies:
   - xarray >=2022.12.0
   - cartopy >=0.21.1
   - matplotlib-base >=3.7.1
-  - matplotlib-base <3.10.0
   - scipy >=1.10.1
   - pandas >=1.5.3
   - numpy >=1.25.0, <2.0.0
@@ -30,7 +29,7 @@ dependencies:
 ## from pip
   - pip
   - pip:
-    - geojsoncontour
+    - geojsoncontour >= 0.5.0
     - geocoder_reverse_natural_earth >= 0.0.2
     - pyaro >= 0.1.1
     - aerovaldb >= 0.1.1
