@@ -76,7 +76,7 @@ def _filled_contours_to_geojson_features(
 
         if len(combined_poly) == 0:
             continue
-        mp = geojson.MultiPolygon(coordinates=combined_poly)
+        mp = geojson.MultiPolygon(coordinates=combined_poly, precision=3)
         feature = geojson.Feature(geometry=mp, properties=prop)
         features.append(feature)
 
