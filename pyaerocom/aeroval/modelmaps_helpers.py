@@ -84,7 +84,7 @@ def _filled_contours_to_geojson_features(
     return fc
 
 
-def calc_contour_json(data, cmap, cmap_bins):
+def calc_contour_json(data: GriddedData, cmap: str, cmap_bins: list[float]):
     """
     Convert gridded data into contours for json output
 
@@ -114,17 +114,29 @@ def calc_contour_json(data, cmap, cmap_bins):
     lats = data.latitude.points
     lons = data.longitude.points
 
+    colors_hex = [to_hex(val) for val in cm.colors]
+    levels = list(cmap_bins)
+    titles = [f"{l0}-{l1}" for l0, l1 in itertools.pairwise(levels)]
+
+    # Include a final contour with the same colour as the second to last
+    levels = [*levels, np.inf]
+    titles = [*titles, f">{cmap_bins[-1]}"]
+    colors = [*colors_hex, colors_hex[-1]]
+
     geojsons = {}
     tst = _jsdate_list(data)
-    colors_hex = [to_hex(val) for val in cm.colors]
     for i, date in enumerate(tst):
         datamon = nparr[i]
-        levels = cmap_bins
-        # Top contour should include everything above seconds to last value
-        levels[-1] = np.inf
 
         geojson = _filled_contours_to_geojson_features(
-            lons, lats, datamon, levels=cmap_bins, properties=[{"fill": val} for val in colors_hex]
+            lons,
+            lats,
+            datamon,
+            levels=levels,
+            properties=[
+                {"fill": val, "fill-opacity": 0.9, "title": title}
+                for val, title in zip(colors, titles)
+            ],
         )
         geojsons[str(date)] = geojson
 
