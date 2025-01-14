@@ -10,7 +10,6 @@ from pyaerocom.aeroval import ExperimentProcessor
 from pyaerocom.aeroval.experiment_output import ExperimentOutput, ProjectOutput
 from pyaerocom.aeroval.json_utils import read_json, write_json
 from pyaerocom.aeroval import EvalSetup
-from tests.conftest import geojson_unavail
 import pathlib
 
 BASEDIR_DEFAULT = Path(const.OUTPUTDIR) / "aeroval" / "data"
@@ -294,7 +293,6 @@ def test_ExperimentOutput_delete_experiment_data_CFG1(eval_config: dict):
     assert not path.exists()
 
 
-@geojson_unavail
 @pytest.mark.parametrize("cfg", ["cfgexp1"])
 def test_Experiment_Output_clean_json_files_CFG1(eval_config: dict):
     cfg = EvalSetup(**eval_config)
@@ -304,7 +302,6 @@ def test_Experiment_Output_clean_json_files_CFG1(eval_config: dict):
     assert len(modified) == 0
 
 
-@geojson_unavail
 @pytest.mark.parametrize("cfg", ["cfgexp1"])
 def test_Experiment_Output_clean_json_files_CFG1_INVALIDMOD(eval_config: dict):
     cfg = EvalSetup(**eval_config)
@@ -316,7 +313,6 @@ def test_Experiment_Output_clean_json_files_CFG1_INVALIDMOD(eval_config: dict):
     assert len(modified) == 13
 
 
-@geojson_unavail
 @pytest.mark.parametrize("cfg", ["cfgexp1"])
 def test_Experiment_Output_clean_json_files_CFG1_INVALIDOBS(eval_config: dict):
     cfg = EvalSetup(**eval_config)
@@ -359,7 +355,6 @@ def test_ExperimentOutput_reorder_experiments_error(dummy_expout: ExperimentOutp
     assert str(e.value) == "need list as input"
 
 
-@geojson_unavail
 @pytest.mark.parametrize("cfg,drop_stats,stats_decimals", [("cfgexp1", ("mab", "R_spearman"), 2)])
 def test_Experiment_Output_drop_stats_and_decimals(
     eval_config: dict, drop_stats, stats_decimals: int
