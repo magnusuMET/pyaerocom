@@ -1,17 +1,14 @@
 import logging
 
-import numpy as np
-import xarray as xr
-
 from pyaerocom import ColocatedData
 from pyaerocom.aeroval._processing_base import HasColocator, ProcessingEngine
 from pyaerocom.aeroval.obsentry import ObsEntry
 from pyaerocom.aeroval.coldatatojson_engine import ColdataToJsonEngine
 from pyaerocom.aeroval.setup_classes import EvalSetup
+
 from pyaerocom.colocation.colocator import Colocator
 from pyaerocom.colocation.colocation_setup import ColocationSetup
 
-from pyaerocom import TsType
 
 logger = logging.getLogger(__name__)
 

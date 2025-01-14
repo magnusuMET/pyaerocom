@@ -570,7 +570,6 @@ def _compute_wdeppr_from_concprcp_helper(data, wdep_pr_var):
     if pr_zero.sum() > 0:
         pr_flags[pr_zero] = False
     wdep_pr = pr_data
-    wdep_units = pr_unit
 
     if not ival == RATES_FREQ_DEFAULT:
         fac = get_unit_conversion_fac(ival, RATES_FREQ_DEFAULT)
