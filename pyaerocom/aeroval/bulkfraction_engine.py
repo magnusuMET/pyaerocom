@@ -1,5 +1,4 @@
 import logging
-from traceback import format_exc
 
 import numpy as np
 import xarray as xr
@@ -9,7 +8,6 @@ from pyaerocom.aeroval._processing_base import HasColocator, ProcessingEngine
 from pyaerocom.aeroval.obsentry import ObsEntry
 from pyaerocom.aeroval.coldatatojson_engine import ColdataToJsonEngine
 from pyaerocom.aeroval.setup_classes import EvalSetup
-from pyaerocom.helpers import get_lowest_resolution
 from pyaerocom.colocation.colocator import Colocator
 from pyaerocom.colocation.colocation_setup import ColocationSetup
 
@@ -41,6 +39,7 @@ class BulkFractionEngine(ProcessingEngine, HasColocator):
             #     print(f"Colocating {var_name}, {freq}")
             freq = self.sobs_cfg.ts_type
             cd, fp = self._run_var(model_name, obs_name, var_name, bulk_vars, freq, self.sobs_cfg)
+
             files_to_convert.append(fp)
 
         engine = ColdataToJsonEngine(self.cfg)
@@ -70,39 +69,45 @@ class BulkFractionEngine(ProcessingEngine, HasColocator):
         model_exists = obs_entry.bulk_options[var_name]["model_exists"]
 
         cols = self.get_colocators(bulk_vars, var_name, freq, model_name, obs_name, model_exists)
-        # if self.cfg.processing_opts.only_json:
-        #     files_to_convert = col.get_available_coldata_files(bulk_vars)
-        # else:
-        coldatas = {}
-        for bv in cols:
-            coldatas[bv] = cols[bv].run(bv)
-        # files_to_convert = col.files_written
-        num_key, denum_key = bulk_vars[0], bulk_vars[1]
+
+        coldatas = []
+        for col in cols:
+            if len(list(col.keys())) != 1:
+                raise ValueError(
+                    "Found more than one colocated object when trying to run bulk variable"
+                )
+            bv = list(col.keys())[0]
+            coldatas.append(col[bv].run(bv))
+
+        num_name, denum_name = bulk_vars[0], bulk_vars[1]
+        num_col = cols[0][num_name].run(num_name)
+        denum_col = cols[1][denum_name].run(denum_name)
         if model_exists:
             cd = self._combine_coldatas(
-                coldatas[num_key][var_name][num_key],
-                coldatas[denum_key][var_name][denum_key],
+                num_col[var_name][num_name],
+                denum_col[var_name][denum_name],
                 var_name,
                 obs_entry,
             )
         else:
             cd = self._combine_coldatas(
-                coldatas[num_key][num_key][num_key],
-                coldatas[denum_key][denum_key][denum_key],
+                num_col[num_name][num_name],
+                denum_col[denum_name][denum_name],
                 var_name,
                 obs_entry,
             )
+
         fp = cd.to_netcdf(
-            out_dir=cols[num_key].output_dir,
+            out_dir=cols[0][num_name].output_dir,
             savename=cd._aerocom_savename(
                 var_name,
                 obs_name,
                 var_name,
                 model_name,
-                cols[num_key].get_start_str(),
-                cols[num_key].get_stop_str(),
+                cols[0][num_name].get_start_str(),
+                cols[0][num_name].get_stop_str(),
                 freq,
-                cols[num_key].colocation_setup.filter_name,
+                cols[0][num_name].colocation_setup.filter_name,
                 None,  # cd.data.attrs["vert_code"],
             ),
         )
@@ -125,7 +130,7 @@ class BulkFractionEngine(ProcessingEngine, HasColocator):
         elif mode == "product":
             new_data = num_coldata.data * denum_coldata.data
         else:
-            raise ValueError(f"Mode must be either fraction of product.")
+            raise ValueError("Mode must be either fraction of product.")
         if model_exists:
             # TODO: Unsure if this works!!!
             new_data[1] = num_coldata.data[1].where(new_data[1])
@@ -146,7 +151,7 @@ class BulkFractionEngine(ProcessingEngine, HasColocator):
         model_name: str = None,
         obs_name: str = None,
         model_exists: bool = False,
-    ) -> dict[str | Colocator]:
+    ) -> list[dict[str | Colocator]]:
         """
         Instantiate colocation engine
 
@@ -185,7 +190,7 @@ class BulkFractionEngine(ProcessingEngine, HasColocator):
                     col_cfg[key] = val
 
             col_cfg["add_meta"].update(diurnal_only=self.cfg.get_obs_entry(obs_name).diurnal_only)
-        cols = {}
+        cols = []
         col_cfg["ts_type"] = freq
         for bulk_var in bulk_vars:
             col_cfg["obs_vars"] = bulk_var
@@ -196,6 +201,6 @@ class BulkFractionEngine(ProcessingEngine, HasColocator):
             col_stp = ColocationSetup(**col_cfg)
             col = Colocator(col_stp)
 
-            cols[bulk_var] = col
+            cols.append({bulk_var: col})
 
         return cols
