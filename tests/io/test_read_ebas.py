@@ -224,6 +224,7 @@ def test_NAN_VAL(reader: ReadEbas):
 def test_PROVIDES_VARIABLES(reader: ReadEbas):
     PROVIDES_VARIABLES = {
         "DEFAULT",
+        "concebc",
         "concca",
         "concmg",
         "conck",

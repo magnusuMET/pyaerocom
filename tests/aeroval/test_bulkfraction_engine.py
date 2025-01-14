@@ -105,7 +105,7 @@ def test__combine_coldatas(bulkengine_instance: BulkFractionEngine):
         bv = list(col.keys())[0]
         coldatas.append(col[bv].run(bv))
 
-    obsentry2 = obsentry.copy()
+    obsentry2 = obsentry.model_copy()
     obsentry2.bulk_options[var_name]["mode"] = "fraction"
     data1 = bulkengine_instance._combine_coldatas(
         coldatas[0][num_name][num_name], coldatas[1][denum_name][denum_name], var_name, obsentry2
@@ -116,7 +116,7 @@ def test__combine_coldatas(bulkengine_instance: BulkFractionEngine):
         len(coldatas[0][num_name][num_name].data), len(coldatas[1][denum_name][denum_name].data)
     )
 
-    obsentry3 = obsentry.copy()
+    obsentry3 = obsentry.model_copy()
     obsentry3.bulk_options[var_name]["mode"] = "product"
     data2 = bulkengine_instance._combine_coldatas(
         coldatas[0][num_name][num_name], coldatas[1][denum_name][denum_name], var_name, obsentry3
