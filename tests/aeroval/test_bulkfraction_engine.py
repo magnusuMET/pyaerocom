@@ -100,7 +100,7 @@ def test__combine_coldatas(bulkengine_instance: BulkFractionEngine):
     for col in cols:
         if len(list(col.keys())) != 1:
             raise ValueError(
-                f"Found more than one colocated object when trying to run bulk variable"
+                "Found more than one colocated object when trying to run bulk variable"
             )
         bv = list(col.keys())[0]
         coldatas.append(col[bv].run(bv))
