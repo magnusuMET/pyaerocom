@@ -502,9 +502,9 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                     )
 
                     timeseries[model_name].setdefault("obs_var", var)
-                    if isinstance(data, GriddedData):
+                    if hasattr(data, "units"):
                         timeseries[model_name].setdefault("obs_unit", data.units)
-                    elif isinstance(data, xr.DataArray):
+                    elif hasattr(data, "var_units"):
                         timeseries[model_name].setdefault("obs_unit", data.var_units[1])
                     else:
                         raise ValueError("Can not determine obs units")
@@ -555,9 +555,9 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                     timeseries[name].setdefault("station_name", "ALL")
                     timeseries[name].setdefault("pyaerocom_version", __version__)
                     timeseries[name].setdefault("mod_var", var)
-                    if isinstance(data, GriddedData):
+                    if hasattr(data, "units"):
                         timeseries[name].setdefault("mod_unit", data.units)
-                    elif isinstance(data, xr.DataArray):
+                    elif hasattr(data, "var_units"):
                         timeseries[name].setdefault("mod_unit", data.var_units[0])
                     else:
                         raise ValueError("Can not determine model units")
