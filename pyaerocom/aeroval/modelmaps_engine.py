@@ -303,7 +303,7 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
 
             overlay_plot = plot_overlay_pixel_maps(
                 data[i],
-                cmap=varinfo.cmap,
+                cmap="grayscale",
                 cmap_bins=varinfo.cmap_bins,
                 format=self.cfg.modelmaps_opts.overlay_save_format,
             )
