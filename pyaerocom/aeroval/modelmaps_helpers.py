@@ -19,6 +19,8 @@ from pyaerocom.aeroval.coldatatojson_helpers import _get_jsdate
 from pyaerocom.helpers import make_datetime_index
 from pyaerocom.tstype import TsType
 
+from PIL import Image
+
 
 # names of modelmaps type options
 CONTOUR = "contour"
@@ -183,11 +185,16 @@ def plot_overlay_pixel_maps(
             pad_inches=0,
         )
         buffer.seek(0)
-        image = buffer.getvalue()
+        image_data = buffer.getvalue()
+
+        image = Image.open(io.BytesIO(image_data)).convert("L")
+        img_byte_arr = io.BytesIO()
+        image.save(img_byte_arr, format=format)
+        img_byte_arr = img_byte_arr.getvalue()
 
     plt.close("all")
 
-    return image
+    return img_byte_arr
 
 
 def find_netcdf_files(directory, strings):
