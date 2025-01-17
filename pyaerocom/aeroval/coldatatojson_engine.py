@@ -141,6 +141,18 @@ class ColdataToJsonEngine(ProcessingEngine):
         if "var_name_input" in coldata.metadata:
             obs_var = coldata.metadata["var_name_input"][0]
             model_var = coldata.metadata["var_name_input"][1]
+        elif (
+            "obs_vars" in coldata.metadata
+        ):  # Try and get from obs_vars. Should not be needed in reading in a ColocatedData object created with pyaerocom.
+            obs_var = model_var = coldata.metadata["obs_vars"]
+            coldata.metadata["var_name_input"] = [obs_var, model_var]
+            logger.warning(
+                "ColdataToJsonEngine: Failed to access var_name_input from coldata.metadata. "
+                "This could be because you're using a ColocatedData object created outside of pyaerocom. "
+                "Setting obs_var and model_data to value in obs_vars instead. "
+                "Setting var_input_data to these values as well. "
+            )
+
         else:
             obs_var = model_var = "UNDEFINED"
 

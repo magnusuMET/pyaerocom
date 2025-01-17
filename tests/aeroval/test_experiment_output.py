@@ -11,6 +11,7 @@ from pyaerocom.aeroval.experiment_output import ExperimentOutput, ProjectOutput
 from pyaerocom.aeroval.json_utils import read_json, write_json
 from pyaerocom.aeroval import EvalSetup
 from tests.conftest import geojson_unavail
+import pathlib
 
 BASEDIR_DEFAULT = Path(const.OUTPUTDIR) / "aeroval" / "data"
 
@@ -197,6 +198,20 @@ def test_ExperimentOutput__info_from_map_file_error(filename: str):
     )
 
 
+def test_ExperimentOutput__info_from_contour_dir_file():
+    file = pathlib.PosixPath("path/to/name_vertical_period.txt")
+    output = ExperimentOutput._info_from_contour_dir_file(file)
+
+    assert output == ("name", "vertical", "period")
+
+
+def test_ExperimentOutput__info_from_contour_dir_file_error():
+    file = pathlib.PosixPath("path/to/obs_vertical_model_period.txt")
+    with pytest.raises(ValueError) as e:
+        ExperimentOutput._info_from_contour_dir_file(file)
+    assert "invalid contour filename" in str(e.value)
+
+
 def test_ExperimentOutput__results_summary_EMPTY(dummy_expout: ExperimentOutput):
     assert dummy_expout._results_summary() == dict(obs=[], ovar=[], vc=[], mod=[], mvar=[], per=[])
 
@@ -293,10 +308,10 @@ def test_Experiment_Output_clean_json_files_CFG1(eval_config: dict):
 @pytest.mark.parametrize("cfg", ["cfgexp1"])
 def test_Experiment_Output_clean_json_files_CFG1_INVALIDMOD(eval_config: dict):
     cfg = EvalSetup(**eval_config)
-    cfg.model_cfg["mod1"] = cfg.model_cfg["TM5-AP3-CTRL"]
+    cfg.model_cfg.add_entry("mod1", cfg.model_cfg.get_entry("TM5-AP3-CTRL"))
     proc = ExperimentProcessor(cfg)
     proc.run()
-    del cfg.model_cfg["mod1"]
+    cfg.model_cfg.remove_entry("mod1")
     modified = proc.exp_output.clean_json_files()
     assert len(modified) == 13
 
@@ -305,10 +320,10 @@ def test_Experiment_Output_clean_json_files_CFG1_INVALIDMOD(eval_config: dict):
 @pytest.mark.parametrize("cfg", ["cfgexp1"])
 def test_Experiment_Output_clean_json_files_CFG1_INVALIDOBS(eval_config: dict):
     cfg = EvalSetup(**eval_config)
-    cfg.obs_cfg["obs1"] = cfg.obs_cfg["AERONET-Sun"]
+    cfg.obs_cfg.add_entry("obs1", eval_config["obs_cfg"]["AERONET-Sun"])
     proc = ExperimentProcessor(cfg)
     proc.run()
-    del cfg.obs_cfg["obs1"]
+    cfg.obs_cfg.remove_entry("obs1")
     modified = proc.exp_output.clean_json_files()
     assert len(modified) == 13
 
@@ -354,7 +369,7 @@ def test_Experiment_Output_drop_stats_and_decimals(
         stats_decimals,
     )
     cfg = EvalSetup(**eval_config)
-    cfg.model_cfg["mod1"] = cfg.model_cfg["TM5-AP3-CTRL"]
+    cfg.model_cfg.add_entry("mod1", cfg.model_cfg.get_entry("TM5-AP3-CTRL"))
     proc = ExperimentProcessor(cfg)
     proc.run()
     path = Path(proc.exp_output.exp_dir)

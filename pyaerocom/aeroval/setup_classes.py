@@ -23,6 +23,7 @@ from pydantic import (
     ConfigDict,
     Field,
     PositiveInt,
+    NonNegativeInt,
     computed_field,
     field_serializer,
     field_validator,
@@ -80,6 +81,7 @@ class OutputPaths(BaseModel):
         "hm/ts",
         "contour",
         "profiles",
+        "contour/overlay",
     ]
     avdb_resource: Path | str | None = None
 
@@ -125,9 +127,8 @@ class OutputPaths(BaseModel):
 
 class ModelMapsSetup(BaseModel):
     maps_freq: Literal["hourly", "daily", "monthly", "yearly", "coarsest"] = "coarsest"
-    maps_res_deg: PositiveInt = 5
-    plot_types: dict | set[str] = {CONTOUR}
-    boundaries: BoundingBox | None = None
+    plot_types: dict[str, str | set[str]] | set[str] = {CONTOUR}
+    boundaries: BoundingBox = BoundingBox(west=-180, east=180, north=90, south=-90)
     map_observations_only_in_right_menu: bool = False
     overlay_save_format: Literal["webp", "png"] = "webp"
 
@@ -136,9 +137,10 @@ class ModelMapsSetup(BaseModel):
         if isinstance(v, dict):
             for m in v:
                 if not isinstance(v[m], set):
-                    v[m] = set([v[m]])
+                    v[m] = set([v[m]])  # v[m] must be a string
                 if v[m] not in PLOT_TYPE_OPTIONS:
                     raise ConfigError("Model maps set up given a non-valid plot type.")
+            return v
         if isinstance(v, str):
             v = set([v])
         if isinstance(v, list):  # can occur when reading a serialized config
@@ -223,7 +225,7 @@ class StatisticsSetup(BaseModel, extra="allow"):
     avg_over_trends: bool = (
         False  # Adds calculation of avg over trends of time series of stations in region
     )
-    obs_min_yrs: PositiveInt = 0  # Removes stations with less than this number of years of valid data (a year with data points in all four seasons) Should in most cases be the same as stats_min_yrs
+    obs_min_yrs: NonNegativeInt = 0  # Removes stations with less than this number of years of valid data (a year with data points in all four seasons) Should in most cases be the same as stats_min_yrs
     stats_min_yrs: PositiveInt = obs_min_yrs  # Calculates trends if number of valid years are equal or more than this. Should in most cases be the same as obs_min_yrs
     sequential_yrs: bool = False  # Whether or not the min_yrs should be sequential
 
@@ -501,29 +503,29 @@ class EvalSetup(BaseModel):
 
     # These attributes require special attention b/c they're not based on Pydantic's BaseModel class.
 
-    obs_cfg: ObsCollection | dict = ObsCollection()
-
-    @field_validator("obs_cfg")
-    def validate_obs_cfg(cls, v):
-        if isinstance(v, ObsCollection):
-            return v
-        return ObsCollection(v)
+    @computed_field
+    @cached_property
+    def obs_cfg(self) -> ObsCollection:
+        oc = ObsCollection()
+        for k, v in self.model_extra.get("obs_cfg", {}).items():
+            oc.add_entry(k, v)
+        return oc
 
     @field_serializer("obs_cfg")
     def serialize_obs_cfg(self, obs_cfg: ObsCollection):
-        return obs_cfg.json_repr()
+        return obs_cfg.as_dict()
 
-    model_cfg: ModelCollection | dict = ModelCollection()
-
-    @field_validator("model_cfg")
-    def validate_model_cfg(cls, v):
-        if isinstance(v, ModelCollection):
-            return v
-        return ModelCollection(v)
+    @computed_field
+    @cached_property
+    def model_cfg(self) -> ModelCollection:
+        mc = ModelCollection()
+        for k, v in self.model_extra.get("model_cfg", {}).items():
+            mc.add_entry(k, v)
+        return mc
 
     @field_serializer("model_cfg")
     def serialize_model_cfg(self, model_cfg: ModelCollection):
-        return model_cfg.json_repr()
+        return model_cfg.as_dict()
 
     ###########################
     ##       Methods

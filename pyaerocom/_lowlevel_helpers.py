@@ -77,6 +77,7 @@ def _class_name(obj):
     return type(obj).__name__
 
 
+# TODO: Check to see if instances of these classes can instead use pydantic
 class Validator(abc.ABC):
     def __set_name__(self, owner, name):
         self._name = name
@@ -113,74 +114,6 @@ class StrType(Validator):
         return val
 
 
-class StrWithDefault(Validator):
-    def __init__(self, default: str):
-        self.default = default
-
-    def validate(self, val):
-        if not isinstance(val, str):
-            if val is None:
-                val = self.default
-            else:
-                raise ValueError(f"need str or None, got {val}")
-        return val
-
-
-class DictType(Validator):
-    def validate(self, val):
-        if not isinstance(val, dict):
-            raise ValueError(f"need dict, got {val}")
-        return val
-
-
-class FlexList(Validator):
-    """list that can be instantated via input str, tuple or list or None"""
-
-    def validate(self, val):
-        if isinstance(val, str):
-            val = [val]
-        elif isinstance(val, tuple):
-            val = list(val)
-        elif val is None:
-            val = []
-        elif not isinstance(val, list):
-            raise ValueError(f"failed to convert {val} to list")
-        return val
-
-
-class EitherOf(Validator):
-    _allowed = FlexList()
-
-    def __init__(self, allowed: list):
-        self._allowed = allowed
-
-    def validate(self, val):
-        if not any([x == val for x in self._allowed]):
-            raise ValueError(f"invalid value {val}, needs to be either of {self._allowed}.")
-        return val
-
-
-class ListOfStrings(FlexList):
-    def validate(self, val):
-        # make sure to have a list
-        val = super().validate(val)
-        # make sure all entries are strings
-        if not all([isinstance(x, str) for x in val]):
-            raise ValueError(f"not all items are str type in input list {val}")
-        return val
-
-
-class DictStrKeysListVals(Validator):
-    def validate(self, val: dict):
-        if not isinstance(val, dict):
-            raise ValueError(f"need dict, got {val}")
-        if any(not isinstance(x, str) for x in val):
-            raise ValueError(f"all keys need to be str type in {val}")
-        if any(not isinstance(x, list) for x in val.values()):
-            raise ValueError(f"all values need to be list type in {val}")
-        return val
-
-
 class Loc(abc.ABC):
     """Abstract descriptor representing a path location
 
@@ -194,7 +127,12 @@ class Loc(abc.ABC):
     """
 
     def __init__(
-        self, default=None, assert_exists=False, auto_create=False, tooltip=None, logger=None
+        self,
+        default=None,
+        assert_exists=False,
+        auto_create=False,
+        tooltip=None,
+        logger=None,
     ):
         self.assert_exists = assert_exists
         self.auto_create = auto_create
