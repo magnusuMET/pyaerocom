@@ -229,7 +229,7 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                     contour,
                     self.exp_output.proj_id,
                     self.exp_output.exp_id,
-                    var,
+                    self.cfg.model_cfg.get_entry(model_name).model_rename_vars.get(var, var),
                     model_name,
                     timestep=time,
                 )
@@ -293,7 +293,10 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
         if self.cfg.processing_opts.only_model_maps:
             self._check_ts_for_only_model_maps(model_name, var, tst, data)
         for i, date in enumerate(tst):
-            outname = f"{model_name}_{var}_{date}"
+            write_var_name = self.cfg.model_cfg.get_entry(model_name).model_rename_vars.get(
+                var, var
+            )
+            outname = f"{model_name}_{write_var_name}_{date}"
 
             # Note should matche the output location defined in aerovaldb
             fp_overlay = os.path.join(outdir, outname)
@@ -316,7 +319,7 @@ class ModelMapsEngine(ProcessingEngine, DataImporter):
                     self.exp_output.proj_id,
                     self.exp_output.exp_id,
                     model_name,
-                    var,
+                    write_var_name,
                     date,
                 )
             files.append(fp_overlay + "." + self.cfg.modelmaps_opts.overlay_save_format)
