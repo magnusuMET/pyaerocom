@@ -184,6 +184,7 @@ def plot_overlay_pixel_maps(
             format=format,
             pad_inches=0,
         )
+
         buffer.seek(0)
         image_data = buffer.getvalue()
 
