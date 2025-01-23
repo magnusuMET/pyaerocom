@@ -1,10 +1,9 @@
-.. figure:: docs/pyaerocom_logo.png
-
-|CI| |Docs| |Coverage| |DOI|
-
 =========
 pyaerocom
 =========
+.. figure:: docs/pyaerocom_logo.png
+
+|CI| |Docs| |Coverage| |DOI|
 
 **Website and Documentation:** https://pyaerocom.readthedocs.io/en/latest/
 
