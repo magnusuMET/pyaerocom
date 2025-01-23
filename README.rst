@@ -1,5 +1,7 @@
 |CI| |Docs| |Coverage| |DOI|
 
+.. figure:: docs/pyaerocom_logo.png
+
 =========
 pyaerocom
 =========
