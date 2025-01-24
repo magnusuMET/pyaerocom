@@ -12,7 +12,7 @@ from pyaerocom.aeroval.coldatatojson_helpers import (
     _init_data_default_frequencies,
     _init_meta_glob,
     _process_heatmap_data,
-    _process_map_and_scat,
+    _process_map_and_scat_single_period,
     _process_regional_timeseries,
     _process_sites,
     _process_sites_weekly_ts,
@@ -440,14 +440,14 @@ class ColdataToJsonEngine(ProcessingEngine):
 
         logger.info("Processing map and scat data by period")
 
-        for period in periods:
-            # compute map_data and scat_data just for this period
-            map_data, scat_data = _process_map_and_scat(
+        # Prepare arguments for parallel processing
+        args = [
+            (
+                period,
                 data,
                 map_meta,
                 site_indices,
-                [period],
-                str(scatter_freq),
+                scatter_freq,
                 stats_min_num,
                 seasons,
                 add_trends,
@@ -456,32 +456,63 @@ class ColdataToJsonEngine(ProcessingEngine):
                 use_fairmode,
                 obs_var,
                 drop_stats,
+                self.avdb,
+                self.exp_output,
+                obs_name,
+                var_name_web,
+                vert_code,
+                model_name,
+                model_var,
             )
+            for period in periods
+        ]
 
-            with self.avdb.lock():
-                self.avdb.put_map(
-                    map_data,
-                    self.exp_output.proj_id,
-                    self.exp_output.exp_id,
-                    obs_name,
-                    var_name_web,
-                    vert_code,
-                    model_name,
-                    model_var,
-                    period.replace("/", ""),  # Remove slashes in CAMS2_83 period.
-                )
+        # Use multiprocessing to parallelize the processing
+        with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+            pool.starmap(_process_map_and_scat_single_period, args)
 
-                self.avdb.put_scatter(
-                    scat_data,
-                    self.exp_output.proj_id,
-                    self.exp_output.exp_id,
-                    obs_name,
-                    var_name_web,
-                    vert_code,
-                    model_name,
-                    model_var,
-                    period.replace("/", ""),  # Remove slashes in CAMS2_83 period.
-                )
+        # for period in periods:
+        #     # compute map_data and scat_data just for this period
+        #     map_data, scat_data = _process_map_and_scat(
+        #         data,
+        #         map_meta,
+        #         site_indices,
+        #         [period],
+        #         str(scatter_freq),
+        #         stats_min_num,
+        #         seasons,
+        #         add_trends,
+        #         trends_min_yrs,
+        #         avg_over_trends,
+        #         use_fairmode,
+        #         obs_var,
+        #         drop_stats,
+        #     )
+
+        #     with self.avdb.lock():
+        #         self.avdb.put_map(
+        #             map_data,
+        #             self.exp_output.proj_id,
+        #             self.exp_output.exp_id,
+        #             obs_name,
+        #             var_name_web,
+        #             vert_code,
+        #             model_name,
+        #             model_var,
+        #             period.replace("/", ""),  # Remove slashes in CAMS2_83 period.
+        #         )
+
+        #         self.avdb.put_scatter(
+        #             scat_data,
+        #             self.exp_output.proj_id,
+        #             self.exp_output.exp_id,
+        #             obs_name,
+        #             var_name_web,
+        #             vert_code,
+        #             model_name,
+        #             model_var,
+        #             period.replace("/", ""),  # Remove slashes in CAMS2_83 period.
+        #         )
 
     def _process_diurnal_profiles(
         self,
