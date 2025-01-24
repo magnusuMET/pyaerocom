@@ -222,6 +222,8 @@ class PostProcessingReader(Reader):
                     "stations": ["" for _ in range(n)],
                     "altitudes": np.nan * np.zeros(n),
                     "values": np.nan * np.zeros(n),
+                    "standard_deviations": np.nan * np.zeros(n),
+                    "flags": np.ones(n),
                 }
 
                 altitudes = data[0].altitudes
@@ -230,26 +232,14 @@ class PostProcessingReader(Reader):
                 values1 = data[1].values
 
                 for i, val in enumerate(shared):
-                    ind0 = np.nonzero(
-                        (groupbys[0][:, 0] == val[0]) &
-                        (groupbys[0][:, 1] == val[1]) &
-                        (groupbys[0][:, 2] == val[2]) &
-                        (groupbys[0][:, 3] == val[3])
-                    )[0][0]
-                    ind1 = np.nonzero(
-                        (groupbys[1][:, 0] == val[0]) &
-                        (groupbys[1][:, 1] == val[1]) &
-                        (groupbys[1][:, 2] == val[2]) &
-                        (groupbys[1][:, 3] == val[3])
-                    )[0][0]
+                    ind0 = np.nonzero(np.all(groupbys[0] == val, axis=1))[0][0]
+                    ind1 = np.nonzero(np.all(groupbys[1] == val, axis=1))[0][0]
 
                     newdata["stations"][i] = str(stations[ind0])
                     newdata["altitudes"][i] = altitudes[ind0]
                     newdata["values"][i] = scalings[0] * values0[ind0] + scalings[1] * values1[ind1]
                     
-                import pandas as pd
-                dataframe = pd.DataFrame.from_dict(data)
-                breakpoint()
+                return DictlikeData(newdata, variable=transform.out_varname(), units=transform.OUT_UNIT)
             else:
                 raise Exception(
                     f"Unknown transform {transform} encountered for variable {varname}"
@@ -266,3 +256,59 @@ class PostProcessingReader(Reader):
 
     def close(self) -> None:
         self.reader.close()
+
+        
+class DictlikeData(Data):
+    def __init__(self, data, variable: str, units: str):
+        self._variable = variable
+        self._units = units
+        self._data = data
+
+    def keys(self):
+        return {}.keys()
+
+    def slice(self, index):
+        return DictlikeData(
+            data=self._data()[index],
+            variable=self._variable,
+            units=self._units,
+        )
+
+    def __len__(self):
+        return len(self.values)
+
+    @property
+    def values(self):
+        return self._data["values"]
+
+    @property
+    def stations(self):
+        return self._data["stations"]
+
+    @property
+    def latitudes(self):
+        return self._data["latitudes"]
+
+    @property
+    def longitudes(self):
+        return self._data["longitudes"]
+
+    @property
+    def altitudes(self):
+        return self._data["altitudes"]
+
+    @property
+    def start_times(self):
+        return self._data["start_times"]
+
+    @property
+    def end_times(self):
+        return self._data["end_times"]
+
+    @property
+    def flags(self):
+        return self._data["flags"]
+
+    @property
+    def standard_deviations(self):
+        return self._data["standard_deviations"]
