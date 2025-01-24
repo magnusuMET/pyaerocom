@@ -1,5 +1,7 @@
 import dataclasses
 
+import numpy as np
+
 from pyaro.timeseries import (
     Reader,
     Data,
@@ -30,6 +32,12 @@ class VariableCombiner:
     OUT_UNIT: str
     OUT_VARNAME: str
     OP: str
+
+    def required_input_variables(self) -> list[str]:
+        return self.REQ_VARS
+
+    def out_varname(self) -> str:
+        return self.OUT_VARNAME
 
 M_N = 14.006
 M_O = 15.999
@@ -73,8 +81,16 @@ TRANSFORMATIONS = {
         OUT_VARNAME="vmro3max",
         NOTE="The vmro3max_from_conco3 transform is only valid at T=20C, p=1013hPa, and the transform requires the use of resample_how to obtain the daily maximum",
     ),
-    "vmrox_from_concno2_vmro3": VariableCombiner(
-        REQ_VARS=("concno2", "vmro3"),
+    "vmrno2_from_concno2": VariableScaling(
+        REQ_VAR="concno2",
+        IN_UNIT="ug m-3",
+        OUT_UNIT="ppb",
+        SCALING_FACTOR=0.5011,  # 20C and 1013 hPa TODO: CHECK THIS
+        OUT_VARNAME="vmrno2",
+        NOTE="The vmrno2_from_conco3 transform is only valid at T=20C, p=1013hPa",
+    ),
+    "vmrox_from_vmrno2_vmro3": VariableCombiner(
+        REQ_VARS=("vmrno2", "vmro3"),
         IN_UNITS=("nmol mol-1", "nmol mol-1"),
         OUT_UNIT="nmol mol-1",
         OUT_VARNAME="vmrox",
@@ -165,6 +181,7 @@ class PostProcessingReader(Reader):
                     raise Exception(
                         f"The transformation {compute_var} requires variables which are not present, missing {missing}"
                     )
+                known_variables.append(transform.out_varname())
                 self.compute_vars[transform.out_varname()] = transform
 
     def data(self, varname: str) -> Data:
@@ -182,16 +199,57 @@ class PostProcessingReader(Reader):
                     data, variable=varname, units=transform.OUT_UNIT, scaling=scaling
                 )
             if isinstance(transform, VariableCombiner):
-                data = (self.read(transform.REQ_VARS[0]), self.read(transform.REQ_VARS[1]))
-                scalings = get_unit_conversion_fac(from_unit=data[0].un)
-                d0 = StationData("??")
-                d1 = d0
+                data = [self.data(var) for var in transform.REQ_VARS]
+                scalings = [get_unit_conversion_fac(from_unit=d.units, to_unit=out_unit) for d, out_unit in zip(data, transform.IN_UNITS)]
+
+                # Find unique shared data based on lat/lon and times
+                groupbys = [
+                    np.array((d.latitudes, d.longitudes, d.start_times.astype(int), d.end_times.astype(int))).transpose()
+                    for d in data
+                ]
+                uniqs = [
+                    set(map(tuple, np.unique(group, axis=0).tolist()))
+                    for group in groupbys
+                ]
+                shared = np.array(list(set.intersection(*uniqs)))
+
+                n = shared.shape[0]
+                newdata = {
+                    "latitudes": shared[:, 0],
+                    "longitudes": shared[:, 1],
+                    "start_times": shared[:, 2].astype("datetime64[ns]"),
+                    "end_times": shared[:, 3].astype("datetime64[ns]"),
+                    "stations": ["" for _ in range(n)],
+                    "altitudes": np.nan * np.zeros(n),
+                    "values": np.nan * np.zeros(n),
+                }
+
+                altitudes = data[0].altitudes
+                stations = data[0].stations
+                values0 = data[0].values
+                values1 = data[1].values
+
+                for i, val in enumerate(shared):
+                    ind0 = np.nonzero(
+                        (groupbys[0][:, 0] == val[0]) &
+                        (groupbys[0][:, 1] == val[1]) &
+                        (groupbys[0][:, 2] == val[2]) &
+                        (groupbys[0][:, 3] == val[3])
+                    )[0][0]
+                    ind1 = np.nonzero(
+                        (groupbys[1][:, 0] == val[0]) &
+                        (groupbys[1][:, 1] == val[1]) &
+                        (groupbys[1][:, 2] == val[2]) &
+                        (groupbys[1][:, 3] == val[3])
+                    )[0][0]
+
+                    newdata["stations"][i] = str(stations[ind0])
+                    newdata["altitudes"][i] = altitudes[ind0]
+                    newdata["values"][i] = scalings[0] * values0[ind0] + scalings[1] * values1[ind1]
+                    
+                import pandas as pd
+                dataframe = pd.DataFrame.from_dict(data)
                 breakpoint()
-                _combine_2_sites(
-                    d0, "concno2",
-                    d1, "conco3",
-                    var_unit_out=transform.OUT_UNIT,
-                )
             else:
                 raise Exception(
                     f"Unknown transform {transform} encountered for variable {varname}"
