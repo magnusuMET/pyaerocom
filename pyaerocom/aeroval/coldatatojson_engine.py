@@ -3,6 +3,7 @@ from time import time
 
 from cf_units import Unit
 from numpy.typing import ArrayLike
+import multiprocessing
 
 from pyaerocom import ColocatedData, TsType
 from pyaerocom.aeroval._processing_base import ProcessingEngine
@@ -15,7 +16,7 @@ from pyaerocom.aeroval.coldatatojson_helpers import (
     _process_regional_timeseries,
     _process_sites,
     _process_sites_weekly_ts,
-    _process_statistics_timeseries,
+    _process_statistics_timeseries_single_region,
     _remove_less_covered,
     init_regions_web,
     process_profile_data_for_regions,
@@ -23,7 +24,6 @@ from pyaerocom.aeroval.coldatatojson_helpers import (
 )
 from pyaerocom.aeroval.exceptions import ConfigError
 from pyaerocom.aeroval.json_utils import round_floats
-from pyaerocom.exceptions import TemporalResolutionError
 
 logger = logging.getLogger(__name__)
 
@@ -338,48 +338,58 @@ class ColdataToJsonEngine(ProcessingEngine):
 
     def _process_stats_timeseries_for_all_regions(
         self,
-        data: dict[str, ColocatedData] = None,
-        coldata: ColocatedData = None,
-        main_freq: str = None,
-        regnames=None,
+        data: dict[str, ColocatedData] | None = None,
+        coldata: ColocatedData | None = None,
+        main_freq: str | None = None,
+        regnames: dict | None = None,
         use_weights: bool = True,
         drop_stats: tuple = (),
         use_country: bool = False,
-        obs_name: str = None,
+        obs_name: str | None = None,
         obs_var: str = None,
-        var_name_web: str = None,
-        out_dirs: dict = None,
-        vert_code: str = None,
-        model_name: str = None,
-        model_var: str = None,
-        meta_glob: dict = None,
-        periods: tuple[str, ...] = None,
-        seasons: tuple[str, ...] = None,
+        var_name_web: str | None = None,
+        out_dirs: dict | None = None,
+        vert_code: str | None = None,
+        model_name: str | None = None,
+        model_var: str | None = None,
+        meta_glob: dict | None = None,
+        periods: tuple[str, ...] | None = None,
+        seasons: tuple[str, ...] | None = None,
         add_trends: bool = False,
         trends_min_yrs: int = 7,
         regions_how: str = "default",
-        regs: dict = None,
+        regs: dict | None = None,
         stats_min_num: int = 1,
         use_fairmode: bool = False,
         avg_over_trends: bool = False,
     ):
         input_freq = self.cfg.statistics_opts.stats_tseries_base_freq
-        for reg in regnames:
-            try:
-                stats_ts = _process_statistics_timeseries(
-                    data=data,
-                    freq=main_freq,
-                    region_ids={reg: regnames[reg]},
-                    use_weights=use_weights,
-                    drop_stats=drop_stats,
-                    use_country=use_country,
-                    data_freq=input_freq,
-                )
 
-            except TemporalResolutionError:
-                stats_ts = {}
+        # Prepare arguments for parallel processing
+        args = [
+            (
+                reg,
+                regnames,
+                data,
+                main_freq,
+                use_weights,
+                drop_stats,
+                use_country,
+                input_freq,
+                obs_name,
+                var_name_web,
+                vert_code,
+                model_name,
+                model_var,
+            )
+            for reg in regnames
+        ]
+        # Use multiprocessing to parallelize the processing
+        with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+            results = pool.starmap(_process_statistics_timeseries_single_region, args)
 
-            region = regnames[reg]
+        # Process the results
+        for stats_ts, region, obs_name, var_name_web, vert_code, model_name, model_var in results:
             self.exp_output.add_heatmap_timeseries_entry(
                 stats_ts,
                 region,
