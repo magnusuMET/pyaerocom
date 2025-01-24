@@ -1,6 +1,6 @@
-=========
+================
 pyaerocom |logo|
-=========
+================
 
 |CI| |Docs| |Coverage| |DOI|
 
@@ -16,8 +16,8 @@ pyaerocom |logo|
 
 .. |logo| image:: docs/pyaerocom_logo.png
   :height: 300px
-  :width: 300 px
-  :scale: 10 %
+  :width: 300px
+  :scale: 10%
 
 .. |CI| image:: https://github.com/metno/pyaerocom/workflows/CI/badge.svg
 	:target: https://github.com/metno/pyaerocom/actions
