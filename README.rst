@@ -1,6 +1,9 @@
-================
-pyaerocom |logo|
-================
+==========
+pyaerocom 
+==========
+
+|logo|
+
 
 |CI| |Docs| |Coverage| |DOI|
 
