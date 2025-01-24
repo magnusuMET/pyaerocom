@@ -18,9 +18,7 @@ pyaerocom
 **AeroVal** evaluation portal: https://aeroval.met.no/
 
 .. |logo| image:: docs/pyaerocom_logo.png
-  :height: 300px
-  :width: 300px
-  :scale: 10%
+  :width: 30%
 
 .. |CI| image:: https://github.com/metno/pyaerocom/workflows/CI/badge.svg
 	:target: https://github.com/metno/pyaerocom/actions
