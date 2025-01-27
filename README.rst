@@ -1,8 +1,11 @@
-|CI| |Docs| |Coverage| |DOI|
+==========
+pyaerocom 
+==========
 
-=========
-pyaerocom
-=========
+|logo|
+
+
+|CI| |Docs| |Coverage| |DOI|
 
 **Website and Documentation:** https://pyaerocom.readthedocs.io/en/latest/
 
@@ -13,6 +16,9 @@ pyaerocom
 **AeroCom:** https://aerocom.met.no
 
 **AeroVal** evaluation portal: https://aeroval.met.no/
+
+.. |logo| image:: docs/pyaerocom_logo.png
+  :width: 30%
 
 .. |CI| image:: https://github.com/metno/pyaerocom/workflows/CI/badge.svg
 	:target: https://github.com/metno/pyaerocom/actions
