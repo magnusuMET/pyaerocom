@@ -299,6 +299,7 @@ class WebDisplaySetup(BaseModel):
     obsorder_from_config: bool = True
     var_order_menu: tuple[str, ...] = ()
     obs_order_menu: tuple[str, ...] = ()
+    stats_order_menu: tuple[str, ...] = ()
     model_order_menu: tuple[str, ...] = ()
     hide_charts: tuple[str, ...] = ()
     hide_pages: tuple[str, ...] = ()

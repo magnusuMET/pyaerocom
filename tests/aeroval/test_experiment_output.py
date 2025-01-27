@@ -350,3 +350,18 @@ def test_Experiment_Output_drop_stats_and_decimals(
     statistics_json = read_json(path / "statistics.json")
     assert all([stat not in statistics_json for stat in drop_stats])
     assert all([statistics_json[stat]["decimals"] == stats_decimals for stat in statistics_json])
+
+
+@pytest.mark.parametrize("cfg", ["cfgexp1"])
+def test_Experiment_Output_stats_reorder(eval_config: dict):
+    cfg = EvalSetup(**eval_config)
+    requested_keys = ("fge", "R_spatial_mean", "mnmb", "nmb")
+    cfg.webdisp_opts.stats_order_menu = requested_keys
+    proc = ExperimentProcessor(cfg)
+    proc.run()
+    path = Path(proc.exp_output.exp_dir)
+    statistics_json = read_json(path / "statistics.json")
+
+    retrieved_keys = list(statistics_json.keys())
+
+    assert tuple(retrieved_keys[:4]) == requested_keys
