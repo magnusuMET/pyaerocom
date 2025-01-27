@@ -11,8 +11,6 @@ from typing import Literal
 import numpy as np
 import pandas as pd
 import xarray as xr
-import aerovaldb
-
 
 from pyaerocom import ColocatedData
 from pyaerocom._warnings import ignore_warnings
@@ -1763,68 +1761,3 @@ def _process_statistics_timeseries_single_region(
 
     region = regnames[reg]
     return (stats_ts, region, obs_name, var_name_web, vert_code, model_name, model_var)
-
-
-def _process_map_and_scat_single_period(
-    period: str,
-    data: dict[str, ColocatedData],
-    map_meta: list[dict],
-    site_indices: list[int],
-    scatter_freq: str,
-    stats_min_num: int,
-    seasons: tuple[str, ...],
-    add_trends: bool,
-    trends_min_yrs: int,
-    avg_over_trends: bool,
-    use_fairmode: bool,
-    obs_var: str,
-    drop_stats: tuple,
-    avdb: aerovaldb.AerovalDB,
-    exp_output,
-    obs_name: str,
-    var_name_web: str,
-    vert_code: str,
-    model_name: str,
-    model_var: str,
-):
-    # Compute map_data and scat_data just for this period
-    map_data, scat_data = _process_map_and_scat(
-        data,
-        map_meta,
-        site_indices,
-        [period],
-        str(scatter_freq),
-        stats_min_num,
-        seasons,
-        add_trends,
-        trends_min_yrs,
-        avg_over_trends,
-        use_fairmode,
-        obs_var,
-        drop_stats,
-    )
-
-    with avdb.lock():
-        avdb.put_map(
-            map_data,
-            exp_output.proj_id,
-            exp_output.exp_id,
-            obs_name,
-            var_name_web,
-            vert_code,
-            model_name,
-            model_var,
-            period.replace("/", ""),  # Remove slashes in CAMS2_83 period.
-        )
-
-        avdb.put_scatter(
-            scat_data,
-            exp_output.proj_id,
-            exp_output.exp_id,
-            obs_name,
-            var_name_web,
-            vert_code,
-            model_name,
-            model_var,
-            period.replace("/", ""),  # Remove slashes in CAMS2_83 period.
-        )
