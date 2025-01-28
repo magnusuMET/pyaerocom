@@ -42,6 +42,20 @@ OBS_GROUNDBASED = {
             )
         },
     ),
+    "AERONET-Sun-exist": dict(
+        obs_id="AeronetSunV3L2Subset.daily",
+        obs_vars=("abs550aer",),
+        obs_vert_type="Column",
+        is_bulk=True,
+        bulk_options={
+            "abs550aer": dict(
+                vars=["od550aer", "od550aer"],
+                model_exists=True,
+                mode="fraction",
+                units="1",
+            )
+        },
+    ),
 }
 
 folder_EMEP = "/lustre/storeB/project/fou/kl/emep/ModelRuns/2022_REPORTING/TRENDS/2013/"

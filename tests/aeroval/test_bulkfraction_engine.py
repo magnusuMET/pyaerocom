@@ -69,10 +69,11 @@ def test__run_var(bulkengine_instance: BulkFractionEngine):
     var_name = "fraction"
     freq = "monthly"
     obsentry = bulkengine_instance.cfg.obs_cfg.get_entry(obs_name)
+    modelentry = bulkengine_instance.cfg.model_cfg.get_entry(model_name)
     bulk_vars = bulkengine_instance._get_bulk_vars(var_name, obsentry)
 
     col, fp = bulkengine_instance._run_var(
-        model_name, obs_name, var_name, bulk_vars, freq, obsentry
+        model_name, obs_name, var_name, bulk_vars, freq, obsentry, modelentry
     )
 
     assert isinstance(fp[0], str)
@@ -86,6 +87,7 @@ def test__combine_coldatas(bulkengine_instance: BulkFractionEngine):
     var_name = "fraction"
     freq = "monthly"
     obsentry = bulkengine_instance.cfg.obs_cfg.get_entry(obs_name)
+    modelentry = bulkengine_instance.cfg.model_cfg.get_entry(model_name)
     bulk_vars = bulkengine_instance._get_bulk_vars(var_name, obsentry)
 
     num_name = bulk_vars[0]
@@ -107,24 +109,80 @@ def test__combine_coldatas(bulkengine_instance: BulkFractionEngine):
 
     obsentry2 = obsentry.model_copy()
     obsentry2.bulk_options[var_name]["mode"] = "fraction"
+    model_num_name, model_denum_name = bulkengine_instance._get_model_var_names(
+        var_name, bulk_vars, model_exists, modelentry
+    )
+
     data1 = bulkengine_instance._combine_coldatas(
-        coldatas[0][num_name][num_name], coldatas[1][denum_name][denum_name], var_name, obsentry2
+        coldatas[0][model_num_name][num_name],
+        coldatas[1][model_denum_name][denum_name],
+        var_name,
+        obsentry2,
     )
 
     assert pytest.approx(np.nanmean(data1.data), rel=1e-5) == 1.0
     assert len(data1.data) == max(
-        len(coldatas[0][num_name][num_name].data), len(coldatas[1][denum_name][denum_name].data)
+        len(coldatas[0][model_num_name][num_name].data),
+        len(coldatas[1][model_denum_name][denum_name].data),
     )
 
     obsentry3 = obsentry.model_copy()
     obsentry3.bulk_options[var_name]["mode"] = "product"
     data2 = bulkengine_instance._combine_coldatas(
-        coldatas[0][num_name][num_name], coldatas[1][denum_name][denum_name], var_name, obsentry3
+        coldatas[0][model_num_name][num_name],
+        coldatas[1][model_denum_name][denum_name],
+        var_name,
+        obsentry3,
     )
 
     assert len(data2.data) == max(
-        len(coldatas[0][num_name][num_name].data), len(coldatas[1][denum_name][denum_name].data)
+        len(coldatas[0][model_num_name][num_name].data),
+        len(coldatas[1][model_denum_name][denum_name].data),
     )
     assert np.array_equal(
-        data2.data.data, coldatas[0][num_name][num_name].data.data ** 2, equal_nan=True
+        data2.data.data, coldatas[0][model_num_name][num_name].data.data ** 2, equal_nan=True
     )
+
+
+def test__combine_coldatas_model_exist(bulkengine_instance: BulkFractionEngine):
+    obs_name = "AERONET-Sun-exist"
+    model_name = "TM5-AP3-CTRL"
+    var_name = "abs550aer"
+    freq = "monthly"
+
+    obsentry = bulkengine_instance.cfg.obs_cfg.get_entry(obs_name)
+    modelentry = bulkengine_instance.cfg.model_cfg.get_entry(model_name)
+    bulk_vars = bulkengine_instance._get_bulk_vars(var_name, obsentry)
+
+    num_name = bulk_vars[0]
+    denum_name = bulk_vars[1]
+
+    model_exists = obsentry.bulk_options[var_name]["model_exists"]
+    cols = bulkengine_instance.get_colocators(
+        bulk_vars, var_name, freq, model_name, obs_name, model_exists
+    )
+
+    coldatas = []
+    for col in cols:
+        if len(list(col.keys())) != 1:
+            raise ValueError(
+                "Found more than one colocated object when trying to run bulk variable"
+            )
+        bv = list(col.keys())[0]
+        coldatas.append(col[bv].run(bv))
+
+    obsentry2 = obsentry.model_copy()
+    obsentry2.bulk_options[var_name]["mode"] = "fraction"
+    model_num_name, model_denum_name = bulkengine_instance._get_model_var_names(
+        var_name, bulk_vars, model_exists, modelentry
+    )
+
+    data1 = bulkengine_instance._combine_coldatas(
+        coldatas[0][model_num_name][num_name],
+        coldatas[1][model_denum_name][denum_name],
+        var_name,
+        obsentry2,
+    )
+
+    assert pytest.approx(np.nanmean(data1.data[0]), rel=1e-5) == 1.0
+    assert pytest.approx(np.nanmean(data1.data[1]), rel=1e-5) != 0.0135

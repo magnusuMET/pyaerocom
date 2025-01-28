@@ -3,6 +3,7 @@ import logging
 from pyaerocom import ColocatedData
 from pyaerocom.aeroval._processing_base import HasColocator, ProcessingEngine
 from pyaerocom.aeroval.obsentry import ObsEntry
+from pyaerocom.aeroval.modelentry import ModelEntry
 from pyaerocom.aeroval.coldatatojson_engine import ColdataToJsonEngine
 from pyaerocom.aeroval.setup_classes import EvalSetup
 
@@ -19,6 +20,7 @@ class BulkFractionEngine(ProcessingEngine, HasColocator):
 
     def run(self, var_list: list | str | None, model_name: str, obs_name: str):
         self.sobs_cfg = self.cfg.obs_cfg.get_entry(obs_name)
+        self.smodel_cfg = self.cfg.model_cfg.get_entry(model_name)
 
         if var_list is None:
             var_list = self.sobs_cfg.obs_vars
@@ -30,12 +32,11 @@ class BulkFractionEngine(ProcessingEngine, HasColocator):
         files_to_convert = []
         for var_name in var_list:
             bulk_vars = self._get_bulk_vars(var_name, self.sobs_cfg)
-            # for freq in self.cfg.time_cfg.freqs:
-            #     if TsType(freq) > TsType(self.sobs_cfg.ts_type):
-            #         continue
-            #     print(f"Colocating {var_name}, {freq}")
+
             freq = self.sobs_cfg.ts_type
-            cd, fp = self._run_var(model_name, obs_name, var_name, bulk_vars, freq, self.sobs_cfg)
+            cd, fp = self._run_var(
+                model_name, obs_name, var_name, bulk_vars, freq, self.sobs_cfg, self.smodel_cfg
+            )
 
             files_to_convert.append(fp)
 
@@ -62,6 +63,7 @@ class BulkFractionEngine(ProcessingEngine, HasColocator):
         bulk_vars: list,
         freq: str,
         obs_entry: ObsEntry,
+        model_entry: ModelEntry,
     ) -> tuple[ColocatedData, str]:
         model_exists = obs_entry.bulk_options[var_name]["model_exists"]
 
@@ -79,20 +81,17 @@ class BulkFractionEngine(ProcessingEngine, HasColocator):
         num_name, denum_name = bulk_vars[0], bulk_vars[1]
         num_col = cols[0][num_name].run(num_name)
         denum_col = cols[1][denum_name].run(denum_name)
-        if model_exists:
-            cd = self._combine_coldatas(
-                num_col[var_name][num_name],
-                denum_col[var_name][denum_name],
-                var_name,
-                obs_entry,
-            )
-        else:
-            cd = self._combine_coldatas(
-                num_col[num_name][num_name],
-                denum_col[denum_name][denum_name],
-                var_name,
-                obs_entry,
-            )
+
+        model_num_name, model_denum_name = self._get_model_var_names(
+            var_name, bulk_vars, model_exists, model_entry
+        )
+
+        cd = self._combine_coldatas(
+            num_col[model_num_name][num_name],
+            denum_col[model_denum_name][denum_name],
+            var_name,
+            obs_entry,
+        )
 
         fp = cd.to_netcdf(
             out_dir=cols[0][num_name].output_dir,
@@ -127,7 +126,7 @@ class BulkFractionEngine(ProcessingEngine, HasColocator):
         elif mode == "product":
             new_data = num_coldata.data * denum_coldata.data
         else:
-            raise ValueError("Mode must be either fraction of product.")
+            raise ValueError(f"Mode must be either fraction of product, and not {mode}")
         if model_exists:
             # TODO: Unsure if this works!!!
             new_data[1] = num_coldata.data[1].where(new_data[1])
@@ -139,6 +138,19 @@ class BulkFractionEngine(ProcessingEngine, HasColocator):
         cd.data.attrs["var_units"] = [units, units]
         cd.metadata["var_name_input"] = [var_name, var_name]
         return cd
+
+    def _get_model_var_names(
+        self, var_name: str, bulk_vars: list[str], model_exists: bool, model_entry: ModelEntry
+    ) -> tuple[str]:
+        num_name, denum_name = bulk_vars[0], bulk_vars[1]
+        if model_exists:
+            num_name, denum_name = var_name, var_name
+
+        model_use_vars = model_entry.model_use_vars
+        if model_use_vars != {}:
+            num_name, denum_name = model_use_vars[num_name], model_use_vars[denum_name]
+
+        return num_name, denum_name
 
     def get_colocators(
         self,
