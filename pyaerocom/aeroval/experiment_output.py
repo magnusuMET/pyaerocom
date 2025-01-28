@@ -649,6 +649,10 @@ class ExperimentOutput(ProjectOutput):
                     stats_info.update(statistics_mean_trend)
                     stats_info.update(statistics_median_trend)
 
+        if self.cfg.webdisp_opts.stats_order_menu:
+            stats_info = sort_dict_by_name(
+                stats_info, pref_list=self.cfg.webdisp_opts.stats_order_menu
+            )
         with self.avdb.lock():
             self.avdb.put_statistics(stats_info, self.proj_id, self.exp_id)
 
