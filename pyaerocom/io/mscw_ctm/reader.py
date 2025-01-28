@@ -126,8 +126,6 @@ class ReadMscwCtm(GriddedReader):
         # For EC from emission
         "concecTotalResEM": ["concecFineResNewEM", "concecFineResAgeEM"],
         "concecTotalNonResEM": ["concecFineNonResNewEM", "concecFineNonResAgeEM"],
-        # "concecTotalResEM": ["concecFineResEM", "concecCoarseResEM"],
-        # "concecTotalNonResEM": ["concecFineNonResEM", "concecCoarseNonResEM"],
         "concebcem": ["concecFineEM", "concecCoarseEM"],
     }
 
@@ -181,8 +179,6 @@ class ReadMscwCtm(GriddedReader):
         "concecTotalNonRes": add_dataarrays,
         "concebc": add_dataarrays,
         # For EC from emission
-        "concecFineResEM": add_dataarrays,
-        "concecFineNonResEM": add_dataarrays,
         "concecTotalResEM": add_dataarrays,
         "concecTotalNonResEM": add_dataarrays,
         "concebcem": add_dataarrays,
