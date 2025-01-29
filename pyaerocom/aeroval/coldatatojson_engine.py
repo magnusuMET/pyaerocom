@@ -4,6 +4,7 @@ from time import time
 from cf_units import Unit
 from numpy.typing import ArrayLike
 import multiprocessing
+import os
 
 from pyaerocom import ColocatedData, TsType
 from pyaerocom.aeroval._processing_base import ProcessingEngine
@@ -26,6 +27,9 @@ from pyaerocom.aeroval.exceptions import ConfigError
 from pyaerocom.aeroval.json_utils import round_floats
 
 logger = logging.getLogger(__name__)
+
+
+pyaerocom_num_workers = "PYAEROCOM_NUM_WORKERS"
 
 
 class ColdataToJsonEngine(ProcessingEngine):
@@ -365,7 +369,6 @@ class ColdataToJsonEngine(ProcessingEngine):
     ):
         input_freq = self.cfg.statistics_opts.stats_tseries_base_freq
 
-        # Prepare arguments for parallel processing
         args = [
             (
                 reg,
@@ -384,11 +387,11 @@ class ColdataToJsonEngine(ProcessingEngine):
             )
             for reg in regnames
         ]
-        # Use multiprocessing to parallelize the processing
-        with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+        num_workers = os.getenv(pyaerocom_num_workers, "1")
+
+        with multiprocessing.Pool(processes=int(num_workers)) as pool:
             results = pool.starmap(_process_statistics_timeseries_single_region, args)
 
-        # Process the results
         for stats_ts, region, obs_name, var_name_web, vert_code, model_name, model_var in results:
             self.exp_output.add_heatmap_timeseries_entry(
                 stats_ts,
