@@ -135,8 +135,8 @@ class ExperimentProcessor(ProcessingEngine, HasColocator):
         model_list = self.cfg.model_cfg.keylist(model_name)
         if not model_list:
             logger.info("No model found, will make dummy model data")
-            self.cfg.webdisp_opts.hide_charts = ["scatterplot"]
-            self.cfg.webdisp_opts.pages = ["evaluation", "infos"]
+            self.cfg.webdisp_opts.hide_charts = ("scatterplot",)
+            self.cfg.webdisp_opts.pages = ("evaluation", "infos")
             model_id = make_dummy_model(obs_list, self.cfg)
             model_list.append("dummy")  # Adds the dummy model to model list after adding it to cfg
             self.cfg.processing_opts.obs_only = True
