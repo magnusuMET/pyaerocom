@@ -313,7 +313,7 @@ class EvalRunOptions(BaseModel):
     #: If True, process only maps (skip obs evaluation)
     only_model_maps: bool = False
     obs_only: bool = False
-    num_workers: int = 1  # number of parallel workers
+    num_workers: int = 1  #: Number of parallel workers to utilize when parallel processing is available. Currently implemented in :func:`pyaerocom.aeroval.coldatatojson_helpers.py::_process_stats_timeseries_for_all_regions`
 
 
 class ProjectInfo(BaseModel):
