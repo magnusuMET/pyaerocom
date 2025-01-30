@@ -313,6 +313,7 @@ class EvalRunOptions(BaseModel):
     #: If True, process only maps (skip obs evaluation)
     only_model_maps: bool = False
     obs_only: bool = False
+    num_workers: int = 1  # number of parallel workers
 
 
 class ProjectInfo(BaseModel):
