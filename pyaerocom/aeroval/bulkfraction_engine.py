@@ -15,10 +15,8 @@ logger = logging.getLogger(__name__)
 
 
 class BulkFractionEngine(ProcessingEngine, HasColocator):
-    def __init__(self, cfg: EvalSetup):
-        super().__init__(cfg)
 
-    def run(self, var_list: list | str | None, model_name: str, obs_name: str):
+    def run(self, var_list: list[str] | str | None, model_name: str, obs_name: str):
         self.sobs_cfg = self.cfg.obs_cfg.get_entry(obs_name)
         self.smodel_cfg = self.cfg.model_cfg.get_entry(model_name)
 
@@ -93,17 +91,19 @@ class BulkFractionEngine(ProcessingEngine, HasColocator):
             obs_entry,
         )
 
+        num_colocator = cols[0][num_name]
+
         fp = cd.to_netcdf(
-            out_dir=cols[0][num_name].output_dir,
+            out_dir=num_colocator.output_dir,
             savename=cd._aerocom_savename(
                 var_name,
                 obs_name,
                 var_name,
                 model_name,
-                cols[0][num_name].get_start_str(),
-                cols[0][num_name].get_stop_str(),
+                num_colocator.get_start_str(),
+                num_colocator.get_stop_str(),
                 freq,
-                cols[0][num_name].colocation_setup.filter_name,
+                num_colocator.colocation_setup.filter_name,
                 None,  # cd.data.attrs["vert_code"],
             ),
         )
