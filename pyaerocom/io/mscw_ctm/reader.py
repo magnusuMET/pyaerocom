@@ -127,7 +127,6 @@ class ReadMscwCtm(GriddedReader):
         "concecTotalResEM": ["concecFineResNewEM", "concecFineResAgeEM"],
         "concecTotalNonResEM": ["concecFineNonResNewEM", "concecFineNonResAgeEM"],
         "concebcem": ["concecFineEM", "concecCoarseEM"],
-
         "concCecpm25EM": ["concecFineEM"],
     }
 
