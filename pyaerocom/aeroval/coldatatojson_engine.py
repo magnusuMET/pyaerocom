@@ -192,8 +192,7 @@ class ColdataToJsonEngine(ProcessingEngine):
             self.avdb.put_regions(regions, self.exp_output.proj_id, self.exp_output.exp_id)
 
         use_country = True if regions_how == "country" else False
-        # to_freqs = freqs if not self.cfg.obs_cfg[obs_name].is_bulk else coldata.ts_type
-        # breakpoint()
+
         data = _init_data_default_frequencies(coldata, freqs)
 
         if annual_stats_constrained:
