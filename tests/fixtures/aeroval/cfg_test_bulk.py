@@ -41,6 +41,7 @@ OBS_GROUNDBASED = {
                 units="1",
             )
         },
+        ts_type="monthly",
     ),
     "AERONET-Sun-exist": dict(
         obs_id="AeronetSunV3L2Subset.daily",
@@ -55,6 +56,7 @@ OBS_GROUNDBASED = {
                 units="1",
             )
         },
+        ts_type="monthly",
     ),
 }
 
@@ -99,7 +101,7 @@ CFG = dict(
     ts_type="monthly",
     map_zoom="Europe",
     freqs=["daily", "monthly", "yearly"],
-    periods=["2013"],
+    periods=["2010"],
     main_freq="monthly",
     maps_freq="yearly",
     zeros_to_nan=False,
@@ -110,8 +112,8 @@ CFG = dict(
     harmonise_units=True,
     regions_how="country",  #'default',#'country',
     annual_stats_constrained=True,
-    proj_id="bulk",
-    exp_id="bulktest_wetrdnpr",
+    proj_id="testing_bulk",
+    exp_id="bulktest",
     exp_name="Evaluation of EMEP Bulk",
     exp_descr=("Evaluation of EMEP Bulk"),
     exp_pi="Daniel Heinesen",

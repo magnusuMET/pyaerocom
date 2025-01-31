@@ -77,7 +77,7 @@ class ObsEntry(BaseModel):
         of a superobs network, and not individually.
     is_bulkfraction: bool
         If true numerator and denominator are colocated separately, before the fraction is calculated.
-        For this to work, the numerator and denominator need to be given in obs_aux_requires
+        For this to work, the numerator and denominator need to be given in bulk_options
     read_opts_ungridded : :obj:`dict`, optional
         dictionary that specifies reading constraints for ungridded reading
         (c.g. :class:`pyaerocom.io.ReadUngridded`).
@@ -99,6 +99,13 @@ class ObsEntry(BaseModel):
         validate_assignment=True,
     )
 
+    ## Pydantic structs
+    class BulkOptions(BaseModel):
+        vars: tuple[str, str]
+        model_exists: bool
+        mode: Literal["product", "fraction"]
+        units: str
+
     ######################
     ## Required attributes
     ######################
@@ -115,7 +122,7 @@ class ObsEntry(BaseModel):
     is_superobs: bool = False
     only_superobs: bool = False
     is_bulk: bool = False
-    bulk_options: dict[str, dict] = {}
+    bulk_options: dict[str, BulkOptions] = {}
     colocation_layer_limts: tuple[LayerLimits, ...] | None = None
     profile_layer_limits: tuple[LayerLimits, ...] | None = None
     web_interface_name: str | None = None
@@ -190,17 +197,12 @@ class ObsEntry(BaseModel):
                 if var not in self.bulk_options:
                     raise KeyError(f"Could not find bulk vars entry for {var}")
 
-                elif len(self.bulk_options[var]["vars"]) != 2:
+                elif len(self.bulk_options[var].vars) != 2:
                     raise ValueError(
                         f"(Only) 2 entries must be present for bulk vars to calculate fraction for {var}"
                     )
-                for option in ["vars", "model_exists", "mode", "units"]:
-                    if option not in self.bulk_options[var]:
-                        raise KeyError(f"Option {option} not found in bulk_options")
-                if self.bulk_options[var]["mode"] not in ["fraction", "product"]:
-                    raise ValueError(
-                        f"Mode must be either fraction of product, not {self.bulk_options[var]['mode']}"
-                    )
+                
+                
 
         self.check_add_obs()
         return self

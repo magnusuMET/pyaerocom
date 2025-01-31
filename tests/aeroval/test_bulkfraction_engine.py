@@ -1,8 +1,11 @@
 import pytest
 import numpy as np
+from pathlib import Path
+import json
 
 from pyaerocom.aeroval.bulkfraction_engine import BulkFractionEngine
-from pyaerocom.aeroval._processing_base import HasColocator, ProcessingEngine
+from pyaerocom.aeroval import ExperimentProcessor
+from pyaerocom.aeroval._processing_base import HasColocator, ProcessingEngine, ExperimentOutput
 from pyaerocom.aeroval import EvalSetup
 from pyaerocom import ColocatedData
 from tests.fixtures.aeroval import cfg_test_bulk
@@ -26,7 +29,7 @@ def test__get_bulk_vars(bulkengine_instance: BulkFractionEngine):
     obsentry = bulkengine_instance.cfg.obs_cfg.get_entry("EBAS-m")
     assert (
         bulkengine_instance._get_bulk_vars("concwetrdn", obsentry)
-        == obsentry.bulk_options["concwetrdn"]["vars"]
+        == obsentry.bulk_options["concwetrdn"].vars
     )
 
     with pytest.raises(KeyError, match="Could not find bulk vars entry"):
@@ -93,7 +96,7 @@ def test__combine_coldatas(bulkengine_instance: BulkFractionEngine):
     num_name = bulk_vars[0]
     denum_name = bulk_vars[1]
 
-    model_exists = obsentry.bulk_options[var_name]["model_exists"]
+    model_exists = obsentry.bulk_options[var_name].model_exists
     cols = bulkengine_instance.get_colocators(
         bulk_vars, var_name, freq, model_name, obs_name, model_exists
     )
@@ -108,7 +111,7 @@ def test__combine_coldatas(bulkengine_instance: BulkFractionEngine):
         coldatas.append(col[bv].run(bv))
 
     obsentry2 = obsentry.model_copy()
-    obsentry2.bulk_options[var_name]["mode"] = "fraction"
+    obsentry2.bulk_options[var_name].mode = "fraction"
     model_num_name, model_denum_name = bulkengine_instance._get_model_var_names(
         var_name, bulk_vars, model_exists, modelentry
     )
@@ -127,7 +130,7 @@ def test__combine_coldatas(bulkengine_instance: BulkFractionEngine):
     )
 
     obsentry3 = obsentry.model_copy()
-    obsentry3.bulk_options[var_name]["mode"] = "product"
+    obsentry3.bulk_options[var_name].mode = "product"
     data2 = bulkengine_instance._combine_coldatas(
         coldatas[0][model_num_name][num_name],
         coldatas[1][model_denum_name][denum_name],
@@ -157,7 +160,7 @@ def test__combine_coldatas_model_exist(bulkengine_instance: BulkFractionEngine):
     num_name = bulk_vars[0]
     denum_name = bulk_vars[1]
 
-    model_exists = obsentry.bulk_options[var_name]["model_exists"]
+    model_exists = obsentry.bulk_options[var_name].model_exists
     cols = bulkengine_instance.get_colocators(
         bulk_vars, var_name, freq, model_name, obs_name, model_exists
     )
@@ -172,7 +175,7 @@ def test__combine_coldatas_model_exist(bulkengine_instance: BulkFractionEngine):
         coldatas.append(col[bv].run(bv))
 
     obsentry2 = obsentry.model_copy()
-    obsentry2.bulk_options[var_name]["mode"] = "fraction"
+    obsentry2.bulk_options[var_name].mode = "fraction"
     model_num_name, model_denum_name = bulkengine_instance._get_model_var_names(
         var_name, bulk_vars, model_exists, modelentry
     )
@@ -186,3 +189,49 @@ def test__combine_coldatas_model_exist(bulkengine_instance: BulkFractionEngine):
 
     assert pytest.approx(np.nanmean(data1.data[0]), rel=1e-5) == 1.0
     assert pytest.approx(np.nanmean(data1.data[1]), rel=1e-5) != 0.0135
+
+
+def test_run(bulkengine_instance: BulkFractionEngine):
+    obs_name = "AERONET-Sun-exist"
+    model_name = "TM5-AP3-CTRL"
+    var_name = "abs550aer"
+    freq = "monthly"
+
+    bulkengine_instance.exp_output.delete_experiment_data(also_coldata=True)
+
+    bulkengine_instance.run(var_name, model_name, obs_name)
+
+    output: ExperimentOutput = bulkengine_instance.exp_output
+    assert Path(output.exp_dir).is_dir()
+
+def test_run_cfg():
+
+    model_name = "TM5-AP3-CTRL"
+    cfg = EvalSetup(**cfg_test_bulk.CFG)
+    proc = ExperimentProcessor(cfg)
+    proc.exp_output.delete_experiment_data(also_coldata=True)
+    proc.run(obs_name="AERONET-Sun", model_name="TM5-AP3-CTRL")
+
+    output: ExperimentOutput = proc.exp_output
+    assert Path(output.exp_dir).is_dir()
+
+    assert Path(output.experiments_file).exists()
+    assert Path(output.var_ranges_file).exists()
+    assert Path(output.statistics_file).exists()
+    assert Path(output.menu_file).exists()
+
+    json_path = Path(output.exp_dir) / f"cfg_{cfg.proj_id}_{cfg.exp_id}.json"
+    assert json_path.exists()
+
+    ts_path = Path(output.exp_dir) / "ts/ALL_AERONET-Sun-fraction_Column.json"
+    with open(ts_path) as f:
+        data = json.load(f)
+        m_data = data[model_name]["monthly_mod"]
+        o_data = data[model_name]["monthly_obs"]
+
+        assert pytest.approx(np.nanmean(m_data), rel=1e-5) == 1.0
+        assert pytest.approx(np.nanmean(o_data), rel=1e-5) == 1.0
+
+
+
+    

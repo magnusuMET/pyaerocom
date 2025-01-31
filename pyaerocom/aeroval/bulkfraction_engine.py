@@ -46,12 +46,12 @@ class BulkFractionEngine(ProcessingEngine, HasColocator):
         if var_name not in bulk_vars:
             raise KeyError(f"Could not find bulk vars entry for {var_name}")
 
-        if len(bulk_vars[var_name]["vars"]) != 2:
+        if len(bulk_vars[var_name].vars) != 2:
             raise ValueError(
                 f"(Only) 2 entries must be present for bulk vars to calculate fraction for {var_name}. Found {bulk_vars[var_name]}"
             )
 
-        return bulk_vars[var_name]["vars"]
+        return bulk_vars[var_name].vars
 
     def _run_var(
         self,
@@ -63,7 +63,7 @@ class BulkFractionEngine(ProcessingEngine, HasColocator):
         obs_entry: ObsEntry,
         model_entry: ModelEntry,
     ) -> tuple[ColocatedData, str]:
-        model_exists = obs_entry.bulk_options[var_name]["model_exists"]
+        model_exists = obs_entry.bulk_options[var_name].model_exists
 
         cols = self.get_colocators(bulk_vars, var_name, freq, model_name, obs_name, model_exists)
 
@@ -116,9 +116,9 @@ class BulkFractionEngine(ProcessingEngine, HasColocator):
         var_name: str,
         obs_entry: ObsEntry,
     ) -> ColocatedData:
-        mode = obs_entry.bulk_options[var_name]["mode"]
-        model_exists = obs_entry.bulk_options[var_name]["model_exists"]
-        units = obs_entry.bulk_options[var_name]["units"]
+        mode = obs_entry.bulk_options[var_name].mode
+        model_exists = obs_entry.bulk_options[var_name].model_exists
+        units = obs_entry.bulk_options[var_name].units
 
         if mode == "fraction":
             new_data = num_coldata.data / denum_coldata.data
