@@ -37,6 +37,22 @@ SUPPORTED_VERT_LOCS: tuple[str, str, str] = (
 )
 
 
+class BulkOptions(BaseModel):
+    # : Vars to be used to calculate fraction or product
+    vars: tuple[str, str]
+    # : Whether or not the bulk variable exist as a model var. If not, it will be calculated same way as obs vars
+    model_exists: bool
+    # : Is the result a product or fraction
+    mode: Literal["product", "fraction"]
+    # : Unit of result
+    units: str
+
+    model_config = ConfigDict(
+        validate_assignment=True,
+        protected_namespaces=(),
+    )
+
+
 class ObsEntry(BaseModel):
     """Observation configuration for evaluation (BaseModel)
 
@@ -100,11 +116,6 @@ class ObsEntry(BaseModel):
     )
 
     ## Pydantic structs
-    class BulkOptions(BaseModel):
-        vars: tuple[str, str]
-        model_exists: bool
-        mode: Literal["product", "fraction"]
-        units: str
 
     ######################
     ## Required attributes
