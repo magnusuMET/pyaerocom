@@ -181,9 +181,7 @@ class ObsEntry(BaseModel):
             ovt = ALT_NAMES_VERT_CODES[ovt]
             return ovt
         valid = SUPPORTED_VERT_CODES + list(ALT_NAMES_VERT_CODES)
-        raise ValueError(
-            f"Invalid value for obs_vert_type: {ovt}. " f"Supported codes are {valid}."
-        )
+        raise ValueError(f"Invalid value for obs_vert_type: {ovt}. Supported codes are {valid}.")
 
     @model_validator(mode="after")
     def check_cfg(self):
@@ -201,8 +199,6 @@ class ObsEntry(BaseModel):
                     raise ValueError(
                         f"(Only) 2 entries must be present for bulk vars to calculate fraction for {var}"
                     )
-                
-                
 
         self.check_add_obs()
         return self
@@ -260,6 +256,6 @@ class ObsEntry(BaseModel):
             raise ValueError(f"invalid value for obs_vert_type: {vc}")
         if val not in SUPPORTED_VERT_CODES:
             raise ValueError(
-                f"invalid value for obs_vert_type: {val}. Choose from " f"{SUPPORTED_VERT_CODES}."
+                f"invalid value for obs_vert_type: {val}. Choose from {SUPPORTED_VERT_CODES}."
             )
         return val

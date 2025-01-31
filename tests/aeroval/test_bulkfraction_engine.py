@@ -204,8 +204,8 @@ def test_run(bulkengine_instance: BulkFractionEngine):
     output: ExperimentOutput = bulkengine_instance.exp_output
     assert Path(output.exp_dir).is_dir()
 
-def test_run_cfg():
 
+def test_run_cfg():
     model_name = "TM5-AP3-CTRL"
     cfg = EvalSetup(**cfg_test_bulk.CFG)
     proc = ExperimentProcessor(cfg)
@@ -231,7 +231,3 @@ def test_run_cfg():
 
         assert pytest.approx(np.nanmean(m_data), rel=1e-5) == 1.0
         assert pytest.approx(np.nanmean(o_data), rel=1e-5) == 1.0
-
-
-
-    

@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 
 class BulkFractionEngine(ProcessingEngine, HasColocator):
-
     def run(self, var_list: list[str] | str | None, model_name: str, obs_name: str):
         self.sobs_cfg = self.cfg.obs_cfg.get_entry(obs_name)
         self.smodel_cfg = self.cfg.model_cfg.get_entry(model_name)
