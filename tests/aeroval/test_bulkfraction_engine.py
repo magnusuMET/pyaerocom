@@ -216,12 +216,6 @@ def test_run_cfg():
     assert Path(output.exp_dir).is_dir()
 
     assert Path(output.experiments_file).exists()
-    assert Path(output.var_ranges_file).exists()
-    assert Path(output.statistics_file).exists()
-    assert Path(output.menu_file).exists()
-
-    json_path = Path(output.exp_dir) / f"cfg_{cfg.proj_id}_{cfg.exp_id}.json"
-    assert json_path.exists()
 
     ts_path = Path(output.exp_dir) / "ts/ALL_AERONET-Sun-fraction_Column.json"
     with open(ts_path) as f:

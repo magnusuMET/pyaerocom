@@ -86,7 +86,7 @@ def test_VarCollection_get_var_error(collection: VarCollection):
         ("*blaaaaaaa*", 0),
         ("dep*", 9),
         ("od*", 26),
-        ("conc*", 120),
+        ("conc*", 121),
     ],
 )
 def test_VarCollection_find(collection: VarCollection, search_pattern: str, num: int):
