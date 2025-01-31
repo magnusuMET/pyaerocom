@@ -5,7 +5,7 @@ from pyaerocom.aeroval._processing_base import HasColocator, ProcessingEngine
 from pyaerocom.aeroval.obsentry import ObsEntry
 from pyaerocom.aeroval.modelentry import ModelEntry
 from pyaerocom.aeroval.coldatatojson_engine import ColdataToJsonEngine
-from pyaerocom.aeroval.setup_classes import EvalSetup
+
 
 from pyaerocom.colocation.colocator import Colocator
 from pyaerocom.colocation.colocation_setup import ColocationSetup

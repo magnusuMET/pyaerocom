@@ -195,7 +195,6 @@ def test_run(bulkengine_instance: BulkFractionEngine):
     obs_name = "AERONET-Sun-exist"
     model_name = "TM5-AP3-CTRL"
     var_name = "abs550aer"
-    freq = "monthly"
 
     bulkengine_instance.exp_output.delete_experiment_data(also_coldata=True)
 
