@@ -6,7 +6,7 @@ from numpy.typing import ArrayLike
 import multiprocessing
 import os
 
-from pyaerocom import ColocatedData, TsType
+from pyaerocom import ColocatedData, TsType, const
 from pyaerocom.aeroval._processing_base import ProcessingEngine
 from pyaerocom.aeroval.coldatatojson_helpers import (
     _apply_annual_constraint,
@@ -27,9 +27,6 @@ from pyaerocom.aeroval.exceptions import ConfigError
 from pyaerocom.aeroval.json_utils import round_floats
 
 logger = logging.getLogger(__name__)
-
-
-pyaerocom_num_workers = "PYAEROCOM_NUM_WORKERS"
 
 
 class ColdataToJsonEngine(ProcessingEngine):
@@ -387,7 +384,7 @@ class ColdataToJsonEngine(ProcessingEngine):
             )
             for reg in regnames
         ]
-        num_workers = os.getenv(pyaerocom_num_workers, "1")
+        num_workers = os.getenv(const.PYAEROCOM_NUM_WORKERS, "1")
 
         with multiprocessing.Pool(processes=int(num_workers)) as pool:
             results = pool.starmap(_process_statistics_timeseries_single_region, args)
