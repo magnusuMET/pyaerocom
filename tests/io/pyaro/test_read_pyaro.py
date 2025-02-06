@@ -155,4 +155,8 @@ def test_vmrox():
     reader = PyaroToUngriddedData(config)
     data = reader.read(vars_to_retrieve=["vmrox"])
 
-    _ = data.to_station_data_all()
+    alldata = data.to_station_data_all()
+    stats = alldata["stats"]
+    assert len(stats) >= 4
+    first = stats[0]
+    assert first["units"] == {"vmrox": "nmol mol-1"}
