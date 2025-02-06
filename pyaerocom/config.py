@@ -172,7 +172,7 @@ class Config:
     #: accessed
     SERVER_CHECK_TIMEOUT = 1  # s
 
-    #: Environment variable to delcare the number of parallel workers to utilize when parallel processing is available. Currently implemented in :func:`pyaerocom.aeroval.coldatatojson_helpers.py::_process_stats_timeseries_for_all_regions`
+    #: Environment variable to declare the number of parallel workers to use when parallel processing is available. Currently implemented in :func:`pyaerocom.aeroval.coldatatojson_helpers.py::_process_stats_timeseries_for_all_regions`
     PYAEROCOM_NUM_WORKERS = "PYAEROCOM_NUM_WORKERS"
 
     def __init__(self, config_file=None, try_infer_environment=True):
